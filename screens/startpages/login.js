@@ -13,21 +13,17 @@ const Login = ({ navigation }) => {
 
       <Text style={styles.orText}>Or log in with Email</Text>
 
-      {/* Input Fields */}
       <TextInput style={styles.input} placeholder="Username or Email" placeholderTextColor="#d9d9d9" />
       <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} placeholderTextColor="#d9d9d9" />
 
-      {/* Forgot Password */}
       <TouchableOpacity style={styles.forgotButton}>
         <Text style={styles.forgotText}>Forgot?</Text>
       </TouchableOpacity>
 
-      {/* Login Button - Navigate to Home Screen */}
       <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Tab')}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
 
-      {/* Sign-up Option */}
       <View style={styles.signupContainer}>
         <Text style={styles.signupText}>Don’t have an account?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Signin')}>

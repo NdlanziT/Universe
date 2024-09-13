@@ -6,25 +6,21 @@ const SignUp = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.header}>Sign up to Universe!</Text>
 
-      {/* Google Sign-up Button */}
       <TouchableOpacity style={styles.googleButton}>
         <Text style={styles.googleText}>Sign up with Google</Text>
       </TouchableOpacity>
 
       <Text style={styles.orText}>Or continue with Email</Text>
 
-      {/* Input Fields */}
       <TextInput style={styles.input} placeholder="Enter username" placeholderTextColor="#d9d9d9" />
       <TextInput style={styles.input} placeholder="Enter phone number" placeholderTextColor="#d9d9d9" />
       <TextInput style={styles.input} placeholder="Enter Email" placeholderTextColor="#d9d9d9" />
       <TextInput style={styles.input} placeholder="Enter password" secureTextEntry={true} placeholderTextColor="#d9d9d9" />
 
-      {/* Create Account Button */}
       <TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate('Tab')}>
         <Text style={styles.signupText}>Create Account</Text>
       </TouchableOpacity>
 
-      {/* Login Option */}
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}>Already have an account?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
