@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet,Image } from 'react-native';
 
 const SignUp = ({ navigation }) => {
   return (
@@ -7,10 +7,15 @@ const SignUp = ({ navigation }) => {
       <Text style={styles.header}>Sign up to Universe!</Text>
 
       <TouchableOpacity style={styles.googleButton}>
-        <Text style={styles.googleText}>Sign up with Google</Text>
+        <Image source={require('../../assets/google.png')} style={styles.googleIcon} />
+        <Text style={styles.googleText}>Log in with Google</Text>
       </TouchableOpacity>
 
-      <Text style={styles.orText}>Or continue with Email</Text>
+      <View style={styles.orcontainer}>
+        <View style={styles.line} />
+        <Text style={styles.orText}>Or sign up with email</Text>
+        <View style={styles.line} />
+      </View>
 
       <TextInput style={styles.input} placeholder="Enter username" placeholderTextColor="#d9d9d9" />
       <TextInput style={styles.input} placeholder="Enter phone number" placeholderTextColor="#d9d9d9" />
@@ -23,10 +28,10 @@ const SignUp = ({ navigation }) => {
 
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}>Already have an account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      </View>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
           <Text style={styles.loginLink}>Login</Text>
         </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -47,7 +52,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  
   googleButton: {
+    flexDirection: 'row',
+    justifyContent : 'center',
     backgroundColor: 'white',
     padding: 15,
     borderRadius: 10,
@@ -58,6 +66,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'black',
+  },
+  googleIcon: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+    marginEnd: 10,
   },
   orText: {
     color: '#d9d9d9',
@@ -95,5 +109,22 @@ const styles = StyleSheet.create({
     color: '#a6a6a6',
     fontWeight: 'bold',
     marginLeft: 5,
+    alignSelf:"center"
+  },
+  orcontainer: {
+    flexDirection: 'row',   // Arrange items in a row
+    alignItems: 'center',   // Align items vertically in the center
+    marginVertical: 20,
+    marginBottom:50     // Add some vertical margin for spacing
+  },
+  line: {
+    flex: 1,                // Take up available space
+    height: 2,              // Set line height to make it thin
+    backgroundColor: 'white', // Line color (black)
+    marginHorizontal: 10,    // Space between the line and the text
+  },
+  orText: {
+    fontSize: 14,
+    color: 'white',          // Text color
   },
 });

@@ -13,7 +13,7 @@ const Stack = createNativeStackNavigator();
 
 const Layout = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer styles={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
       <Stack.Navigator initialRouteName="Welcome">
         <Stack.Screen 
@@ -43,5 +43,6 @@ export default Layout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor:"blue",
   },
 });

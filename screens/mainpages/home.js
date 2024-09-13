@@ -20,10 +20,10 @@ const Home = () => {
           <FontAwesome onPress={showAlert} name="caret-down" size={30} color="white" style={styles.icon1} />
         </View>
         <View style={styles.iconContainer}>
-          <FontAwesome onPress={showAlert} name="plus-circle" size={35} color="white" style={styles.icon} />
-          <FontAwesome onPress={showAlert} name="search" size={35} color="white" style={styles.icon} />
+          <FontAwesome onPress={showAlert} name="plus-circle" size={30} color="white" style={styles.icon} />
+          <FontAwesome onPress={showAlert} name="search" size={30} color="white" style={styles.icon} />
           <View style={styles.messageIconContainer}>
-            <FontAwesome onPress={showAlert} name="commenting-o" size={35} color="white" style={styles.icon} />
+            <FontAwesome onPress={showAlert} name="comment-o" size={30} color="white" style={styles.icon} />
             {messageCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{messageCount}</Text>
@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
   icon: {
     marginLeft: width * 0.04, // Space between icons (5% of screen width)
     marginBottom: -5, // Space between icons
+    fontWeight: 'thin',
   },
   icon1: {
     marginBottom: -5, // Space between icons
