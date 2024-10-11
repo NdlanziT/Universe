@@ -16,10 +16,10 @@ const Inbox = ({navigation}) => {
     ];
 
     const suggestedAccounts = [
-        { name: 'tsheepang_maake', realName: 'Tsheepang Maake', image: require('./download.jpg') },
-        { name: 'boitumelohope7', realName: 'Boitumelo Hope', image: require('./download.jpg') },
-        { name: 'rosinah_mocheki1604', realName: 'Rosinah Mocheki', image: require('./download.jpg') },
-        { name: 'koketsobridgetr', realName: 'Koketso Bridget Rammuke', image: require('./download.jpg') },
+        { name: 'User 1', realName: 'name 1', image: require('./download.jpg') },
+        { name: 'User 2', realName: 'name 2', image: require('./download.jpg') },
+        { name: 'User 3', realName: 'name 3', image: require('./download.jpg') },
+        { name: 'User 4', realName: 'name 4', image: require('./download.jpg') },
     ];
 
     const handleLongPress = (account) => {
