@@ -8,14 +8,14 @@ const AccountPrivacy = ({navigation}) => {
   return (
     <View style={styles.container}>
       {/* Header Section */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.header} onPress={() => navigation.goBack()}>
+        <View >
           <Icon name="arrow-left" size={30} color="white" />
-        </TouchableOpacity>
+        </View>
         <Text style={styles.headerText}>account privacy</Text>
-      </View>
+      </TouchableOpacity>
 
-      {/* Information Section */}
+
       <Text style={styles.mainHeading}>who can see your profile post!</Text>
       <Text style={styles.subHeading}>
         your post may show up in home feed, on your profile and at search pages

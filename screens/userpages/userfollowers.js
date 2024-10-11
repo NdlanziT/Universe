@@ -2,13 +2,12 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image,
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Followingpage = ({navigation}) => {
+const Userfollowers = ({navigation}) => {
     const [search, setSearch] = useState("");
     const [activePage, setActivePage] = useState('followers'); 
 
-    const backbutton = ()=>{
-        navigation.goBack()
-    }
+    const backbutton = ()=>{navigation.goBack()}
+    
     const removefollowers = ()=>{
         Alert.alert("remove followers button");
     }
@@ -50,11 +49,11 @@ const Followingpage = ({navigation}) => {
                     <TouchableOpacity 
                         style={[
                             styles.buttonFollow, 
-                            activePage === 'subscription' && styles.activeButton
+                            activePage === 'mutual' && styles.activeButton
                         ]}
-                        onPress={() => setActivePage('subscription')}
+                        onPress={() => setActivePage('mutual')}
                     >
-                        <Text style={styles.buttonText}>Subscription (0)</Text>
+                        <Text style={styles.buttonText}>mutual (1)</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -76,10 +75,9 @@ const Followingpage = ({navigation}) => {
                             />
                             <View>
                                 <Text style={styles.buttonText}>Username</Text>
-                                <Text style={styles.follow}>Follow</Text>
                             </View>
-                            <TouchableOpacity style={styles.remove} onPress={removefollowers}>
-                                <Text style={styles.buttonText}>Remove</Text>
+                            <TouchableOpacity style={styles.followbtn} onPress={removefollowers}>
+                                <Text style={styles.buttonText}>Follow</Text>
                             </TouchableOpacity>
                         </View>
                     </>
@@ -101,23 +99,56 @@ const Followingpage = ({navigation}) => {
                             />
                             <View>
                                 <Text style={styles.buttonText}>Username</Text>
-                                <Text style={styles.follow}>Email</Text>
                             </View>
-                            <TouchableOpacity style={styles.remove} onPress={unfollows}>
-                                <Text style={styles.buttonText}>Unfollow</Text>
+                            <TouchableOpacity style={styles.followbtn} onPress={unfollows}>
+                                <Text style={styles.buttonText}>Follow</Text>
                             </TouchableOpacity>
                         </View>
                     </>
                 )}
-                {activePage === 'subscription' && (
-                    <Text style={styles.noSubscriptionText}>You have no active subscriptions</Text>
+                {activePage === 'mutual' && (
+                                        <>
+                                        <TextInput
+                                            style={styles.searchInput}
+                                            placeholder="Search following"
+                                            placeholderTextColor="#888"
+                                            value={search}
+                                            onChangeText={setSearch}
+                                        />
+                                        <Text style={styles.textfollowers}>All mutual Followers</Text>
+                                        <View style={styles.group3}>
+                                            <Image
+                                                source={require('./download.jpg')} 
+                                                style={styles.profilepic}
+                                            />
+                                            <View>
+                                                <Text style={styles.buttonText}>Username</Text>
+                                            </View>
+                                            <TouchableOpacity style={styles.remove} onPress={unfollows}>
+                                                <Text style={styles.buttonText}>Unfollow</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <Text style={styles.textfollowers}>Suggest for you</Text>
+                                        <View style={styles.group3}>
+                                            <Image
+                                                source={require('./download.jpg')} 
+                                                style={styles.profilepic}
+                                            />
+                                            <View>
+                                                <Text style={styles.buttonText}>Username</Text>
+                                            </View>
+                                            <TouchableOpacity style={styles.followbtn} onPress={unfollows}>
+                                                <Text style={styles.buttonText}>Follow</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </>
                 )}
             </ScrollView>
         </View>
     );
 };
 
-export default Followingpage;
+export default Userfollowers;
 
 const styles = StyleSheet.create({
     container: {
@@ -198,6 +229,15 @@ const styles = StyleSheet.create({
     },
     remove: {
         backgroundColor: "#434343",
+        height: 40,
+        width: 120,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        marginLeft: 60,
+    },
+    followbtn: {
+        backgroundColor: "#007AFF",
         height: 40,
         width: 120,
         justifyContent: 'center',

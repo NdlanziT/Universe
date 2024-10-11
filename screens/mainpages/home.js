@@ -1,15 +1,19 @@
-import { StyleSheet, Text, View, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import React from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
-const Home = () => {
+const Home = ({navigation}) => {
   const messageCount = 10; // Number of messages to display in the badge
 
   const showAlert = () => {
     Alert.alert("you clicked a button");
+  };
+  const gotoMessage= () => {
+    navigation.navigate('Inbox');
+
   };
 
   return (
@@ -22,14 +26,14 @@ const Home = () => {
         <View style={styles.iconContainer}>
           <FontAwesome onPress={showAlert} name="plus-circle" size={30} color="white" style={styles.icon} />
           <FontAwesome onPress={showAlert} name="search" size={30} color="white" style={styles.icon} />
-          <View style={styles.messageIconContainer}>
-            <FontAwesome onPress={showAlert} name="comment-o" size={30} color="white" style={styles.icon} />
+          <TouchableOpacity style={styles.messageIconContainer} onPress={gotoMessage}>
+            <FontAwesome  name="inbox" size={30} color="white" style={styles.icon} />
             {messageCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{messageCount}</Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.content}>

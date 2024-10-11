@@ -14,7 +14,7 @@ const Manageaccount = ({navigation}) => {
     }
     
     const verified = ()=>{
-        Alert.arlet("is yet to be developed")
+        Alert.alert("is yet to be developed");
     }
 
     return (

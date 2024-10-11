@@ -40,6 +40,13 @@ import Changeemail from './menupages/menu/changeemail';
 import Changephone from './menupages/menu/Changephone';
 import Changepassword from './menupages/menu/changepassword';
 
+import Inbox from './messagepages/Inbox';
+import Messagespage from './messagepages/messagepage';
+
+import Userprofile from './userpages/userprofile';
+import Userfollowers from './userpages/userfollowers';
+import FullScreenImagePage from './userpages/profileimage';
+
 
 
 
@@ -166,9 +173,29 @@ const Layout = () => {
           name="Changepassword"  
           component={Changepassword} 
           options={{ headerTitleAlign: 'center', headerShown: false }}        />
-          <Stack.Screen 
-            name="Blocked"  
-            component={Blocked} 
+        <Stack.Screen 
+          name="Blocked"  
+          component={Blocked} 
+          options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name="Inbox"  
+            component={Inbox} 
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name="Message"   
+            component={Messagespage} 
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name="Profileimage"  
+            component={FullScreenImagePage} 
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name="Userfollowers"  
+            component={Userfollowers} 
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name="Userprofile"  
+            component={Userprofile} 
             options={{ headerTitleAlign: 'center', headerShown: false }}        />
       </Stack.Navigator>
     </NavigationContainer>

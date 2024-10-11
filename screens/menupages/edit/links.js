@@ -14,12 +14,12 @@ const Links = ({navigation}) => {
     return (
         <View style={styles.container}>
             <View style={styles.group1}>
-                <View style={styles.leftSection}>             
-                    <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
+                <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
+                    <View style={styles.arrowcontainer} >
                         <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
-                    </TouchableOpacity>
+                    </View>
                     <Text style={styles.text}>Links</Text>
-                </View>
+                </TouchableOpacity>
             </View>
             <View style={styles.personal_info_container}>
                 <TouchableOpacity style={styles.button} onPress={handleaddlink} >

@@ -8,12 +8,12 @@ const Theme = ({navigation}) => {
   return (
     <View style={styles.container}>
       {/* Header Section */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.header} onPress={() => navigation.goBack()}>
+        <View >
           <Icon name="arrow-left" size={30} color="white" />
-        </TouchableOpacity>
+        </View>
         <Text style={styles.headerText}>Theme</Text>
-      </View>
+      </TouchableOpacity>
       <Text style={styles.chooseText}>choose theme:</Text>
 
       {/* Public Option */}
