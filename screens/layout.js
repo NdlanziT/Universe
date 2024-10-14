@@ -47,7 +47,9 @@ import Userprofile from './userpages/userprofile';
 import Userfollowers from './userpages/userfollowers';
 import FullScreenImagePage from './userpages/profileimage';
 
-
+import AddPost from './mainpages/components/addpost';
+import Categorise from './mainpages/components/categorise';
+import PostPrivacy from './mainpages/components/postprivacy';
 
 
 
@@ -196,6 +198,18 @@ const Layout = () => {
         <Stack.Screen 
             name="Userprofile"  
             component={Userprofile} 
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen
+            name='AddPost'
+            component={AddPost}
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen
+            name='Categorise'
+            component={Categorise}
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen
+            name='PostPrivacy'
+            component={PostPrivacy}
             options={{ headerTitleAlign: 'center', headerShown: false }}        />
       </Stack.Navigator>
     </NavigationContainer>
