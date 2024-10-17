@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons'; // Change to Ionicons
 
 const Dashboard = ({navigation}) => {
     const reachhandle = ()=>{
@@ -25,7 +25,7 @@ const Dashboard = ({navigation}) => {
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
                     <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
+                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Dashboard</Text>
                 </View>
@@ -44,7 +44,7 @@ const Dashboard = ({navigation}) => {
                         <Text style={styles.statsText}>Accounts reached</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>25 {<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>25 {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -53,7 +53,7 @@ const Dashboard = ({navigation}) => {
                         <Text style={styles.statsText}>Accounts engaged</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>25 {<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>25 {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -62,7 +62,7 @@ const Dashboard = ({navigation}) => {
                         <Text style={styles.statsText}>Total followers</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>25 {<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>25 {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -70,7 +70,7 @@ const Dashboard = ({navigation}) => {
                 <Text style={styles.toolsheadings}>Tools for you</Text>
             </View>
             <TouchableOpacity style={styles.group5} onPress={postboost}>
-                <Icon name="share-square" size={25} color="white" style={styles.iconText} />
+                <Icon name="bar-chart" size={25} color="white" style={styles.iconText} />
                 <Text style={styles.statsText}>Post boost</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.group5} onPress={verifyprofile}>

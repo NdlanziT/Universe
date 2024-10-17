@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TextInput, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useRoute } from '@react-navigation/native';
 
 const messages = [
@@ -66,7 +66,7 @@ const Messagespage = ({navigation}) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backbtn} onPress={() => navigation.goBack()}>
-            <FontAwesome  name="arrow-left" size={30} color="white" />
+            <Icon  name="arrow-back" size={30} color="white" />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
           <Image source={require('./download.jpg')} style={styles.smallProfileImage} />
@@ -76,7 +76,7 @@ const Messagespage = ({navigation}) => {
           </View>
         </View>
         <View style={styles.headerIcons}>
-          <FontAwesome name="phone" size={24} color="white" />
+          <Icon name="information-circle-outline" size={24} color="white" />
         </View>
       </View>
 
@@ -112,7 +112,7 @@ const Messagespage = ({navigation}) => {
 
       <View style={styles.inputContainer}>
         {message === '' ? (
-          <FontAwesome name="camera" size={24} color="gray" style={styles.inputIcon} />
+          <Icon name="camera" size={30} color="gray" style={styles.inputIcon} />
         ) : null}
         <TextInput
           style={styles.input}
@@ -123,7 +123,7 @@ const Messagespage = ({navigation}) => {
         />
         {message !== '' ? (
           <TouchableOpacity onPress={handleSend}>
-            <FontAwesome name="send" size={24} color="blue" style={styles.inputIcon} />
+            <Icon name="send" size={30} color="blue" style={styles.inputIcon} />
           </TouchableOpacity>
         ) : null}
       </View>

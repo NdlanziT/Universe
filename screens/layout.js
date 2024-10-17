@@ -5,6 +5,7 @@ import Welcome from './startpages/welcome';
 import Login from './startpages/login';
 import Signin from './startpages/signin';
 import Tab from './mainpages/tab';
+import Setupprofile from './startpages/setupprofile';
 
 
 import Dashboard from './menupages/dashboard/dashboard';
@@ -83,6 +84,10 @@ const Layout = () => {
           name="Tab" 
           component={Tab} 
           options={{ headerTitleAlign: 'center', headerShown: false }}        />
+          <Stack.Screen 
+            name="Setupprofile" 
+            component={Setupprofile} 
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
         <Stack.Screen 
           name="Dashboard"  
           component={Dashboard} 

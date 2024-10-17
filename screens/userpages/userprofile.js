@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, Animated,Image, Alert, Modal,Share, } from 'react-native';
 import React, { useRef, useState } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native';
 
 
@@ -88,19 +88,19 @@ const Userprofile = ({navigation}) => {
     <View style={styles.container}>
       <View style={styles.group1}>
         <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={30} color="white" />
+          <Icon name="arrow-back" size={30} color="white" />
           <Text style={styles.text}>Username</Text>
         </TouchableOpacity>
 
         <View style={styles.rightSection}>
           {/* Bell icon with notification dot */}
             <TouchableOpacity style={styles.iconWithBadge} onPress={searchhandle}>
-            <Icon name="search" size={30} color="white" style={styles.iconText} />
+            <Icon name="search" size={25} color="white" style={styles.iconText} />
           </TouchableOpacity>
 
           {/* Bars icon with red dot */}
           <TouchableOpacity style={styles.iconWithDot} onPress={openoptionModal}>
-            <Icon name="ellipsis-v" size={30} color="white" style={styles.iconText} />
+            <Icon name="ellipsis-vertical" size={24} color="white" style={styles.iconText} />
           </TouchableOpacity>
         </View>
       </View>

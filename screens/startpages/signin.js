@@ -1,37 +1,90 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet,Image } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image, Alert } from 'react-native';
+import { auth } from '../../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const SignUp = ({ navigation }) => {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSignUp = async () => {
+    if (!name || !phone || !email || !password || !confirmPassword) {
+      Alert.alert("Error", "All fields are required");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true); // Show loading state
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      setLoading(false); // Hide loading state
+      navigation.navigate('Setupprofile', { name, phone, email, user }); // Pass data to next screen
+    } catch (error) {
+      setLoading(false); // Hide loading on error
+      Alert.alert("Error", error.message); 
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Sign up to Universe!</Text>
 
-      <TouchableOpacity style={styles.googleButton}>
-        <Image source={require('../../assets/google.png')} style={styles.googleIcon} />
-        <Text style={styles.googleText}>Log in with Google</Text>
-      </TouchableOpacity>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your name"
+        placeholderTextColor="#d9d9d9"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter phone number"
+        placeholderTextColor="#d9d9d9"
+        value={phone}
+        onChangeText={setPhone}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Email"
+        placeholderTextColor="#d9d9d9"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter password"
+        secureTextEntry={true}
+        placeholderTextColor="#d9d9d9"
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Repeat entered password"
+        secureTextEntry={true}
+        placeholderTextColor="#d9d9d9"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
 
-      <View style={styles.orcontainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>Or sign up with email</Text>
-        <View style={styles.line} />
-      </View>
-
-      <TextInput style={styles.input} placeholder="Enter username" placeholderTextColor="#d9d9d9" />
-      <TextInput style={styles.input} placeholder="Enter phone number" placeholderTextColor="#d9d9d9" />
-      <TextInput style={styles.input} placeholder="Enter Email" placeholderTextColor="#d9d9d9" />
-      <TextInput style={styles.input} placeholder="Enter password" secureTextEntry={true} placeholderTextColor="#d9d9d9" />
-
-      <TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate('Tab')}>
-        <Text style={styles.signupText}>Create Account</Text>
+      <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+        <Text style={styles.signupText}>{loading ? 'Creating your account...' : 'Create account'}</Text>
       </TouchableOpacity>
 
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}>Already have an account?</Text>
       </View>
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginLink}>Login</Text>
-        </TouchableOpacity>
+        <Text style={styles.loginLink}>Login</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -51,33 +104,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-  },
-  
-  googleButton: {
-    flexDirection: 'row',
-    justifyContent : 'center',
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  googleText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  googleIcon: {
-    width: 30,
-    height: 30,
-    resizeMode: 'contain',
-    marginEnd: 10,
-  },
-  orText: {
-    color: '#d9d9d9',
-    textAlign: 'center',
-    marginVertical: 10,
-    fontWeight: 'bold',
   },
   input: {
     backgroundColor: '#1a1a1a',
@@ -109,22 +135,6 @@ const styles = StyleSheet.create({
     color: '#a6a6a6',
     fontWeight: 'bold',
     marginLeft: 5,
-    alignSelf:"center"
-  },
-  orcontainer: {
-    flexDirection: 'row',   // Arrange items in a row
-    alignItems: 'center',   // Align items vertically in the center
-    marginVertical: 20,
-    marginBottom:50     // Add some vertical margin for spacing
-  },
-  line: {
-    flex: 1,                // Take up available space
-    height: 2,              // Set line height to make it thin
-    backgroundColor: 'white', // Line color (black)
-    marginHorizontal: 10,    // Space between the line and the text
-  },
-  orText: {
-    fontSize: 14,
-    color: 'white',          // Text color
+    alignSelf: 'center',
   },
 });

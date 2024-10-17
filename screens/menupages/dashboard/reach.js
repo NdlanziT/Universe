@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Animated,Modal } from 'react-native';
 import React, { useState,useRef  } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Reach = ({navigation}) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
@@ -56,7 +56,7 @@ const Reach = ({navigation}) => {
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
                     <View style={styles.arrowcontainer}  >
-                        <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
+                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Reach</Text>
                 </TouchableOpacity>

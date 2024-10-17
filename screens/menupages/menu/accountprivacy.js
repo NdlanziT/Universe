@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const AccountPrivacy = ({navigation}) => {
   const [selectedAudience, setSelectedAudience] = useState('public');
@@ -10,7 +10,7 @@ const AccountPrivacy = ({navigation}) => {
       {/* Header Section */}
       <TouchableOpacity style={styles.header} onPress={() => navigation.goBack()}>
         <View >
-          <Icon name="arrow-left" size={30} color="white" />
+          <Icon name="arrow-back" size={30} color="white" />
         </View>
         <Text style={styles.headerText}>account privacy</Text>
       </TouchableOpacity>
@@ -30,7 +30,7 @@ const AccountPrivacy = ({navigation}) => {
         onPress={() => setSelectedAudience('public')}
       >
         <Icon
-          name={selectedAudience === 'public' ? 'dot-circle-o' : 'circle-o'}
+          name={selectedAudience === 'public' ? 'radio-button-on-outline' : 'radio-button-off-outline'}
           size={24}
           color="white"
           style={styles.radioIcon}
@@ -47,7 +47,7 @@ const AccountPrivacy = ({navigation}) => {
         onPress={() => setSelectedAudience('private')}
       >
         <Icon
-          name={selectedAudience === 'private' ? 'dot-circle-o' : 'circle-o'}
+          name={selectedAudience === 'private' ? 'radio-button-on-outline' : 'radio-button-off-outline'}
           size={24}
           color="white"
           style={styles.radioIcon}

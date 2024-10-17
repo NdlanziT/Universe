@@ -1,33 +1,80 @@
 import { StyleSheet, Text, View, ActivityIndicator, Animated, Modal, TouchableOpacity, TextInput,Image, Alert } from 'react-native';
 import React, { useRef, useState } from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
 
-const Edit = ({navigation}) => {
+import { db,storage } from '../../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; 
+
+const Setupprofile = ({ route,navigation }) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
     const slideAnimEdit = useRef(new Animated.Value(0)).current;
 
+    const { name, phone, email, user } = route.params;
+
     const [loading, setLoading] = useState(false);
-    const [text, setText] = useState('');
+    const [bio, setBio] = useState('');
+    const [username, setUsername] = useState('');
     const [media, setMedia] = useState(null);
+    const [imagename,setImagename] = useState("");
 
 
-    const handlecategory = ()=>{
-        Alert.alert("category is not yet available")    }
-    const handlelink = ()=>{
-        navigation.navigate("Links")
+const input_user_info = async (email, username, bio, name, phone) => {
+    setLoading(true);
+    
+    try {
+        let imagename; // Declare imagename to use it later
+
+        if (media) {
+            // Create the image name synchronously
+            imagename = `${name}${email}${phone}${user.id}`;
+
+            const response = await fetch(media.uri); // Fetch the image from the URI
+            const blob = await response.blob();  // Convert the image to a blob
+
+            const storageRef = ref(storage, `profilepictures/${imagename}`); // Create a reference to the storage location
+            await uploadBytes(storageRef, blob); // Upload the image blob
+            
+            // Get the URL for the uploaded image (if you need it)
+            const imageUrl = await getDownloadURL(storageRef); // You can keep this for other purposes if needed
+        } else {
+            imagename = null; // Set imagename to null if no media is selected
+        }
+
+        const userRef = doc(db, 'users', email); // Use email as the document ID
+        await setDoc(userRef, {
+            email: email,
+            name: name,
+            username: username,
+            bio: bio,
+            phone: phone,
+            apptheme: true,
+            verify: false,
+            post: [],
+            following: [],
+            followers: [],
+            blocked: [],
+            chat: [],
+            favourites: [],
+            saved: [],
+            profilepictureURL: imagename, // Assign imagename directly
+            links: {},
+        });
+
+        navigation.navigate('Tab');
+    } catch (error) {
+        console.error('Error updating your data in the database: ', error);
+    } finally {
+        setLoading(false); // Stop loading indicator
     }
-    const handlegotomanageaccount = ()=>{
-        navigation.navigate("Manageaccount")
-    }
-    const handleverify = ()=>{
-        Alert.alert("verify is not yet available")
-    }
-    const handleusername = ()=>{
-        navigation.navigate("Changeusername")
-    }
-    const handlebio = ()=>{
-        navigation.navigate("Changebio")
+};
+
+    
+
+
+    const handlesettinprofile = ()=>{
+        input_user_info(email,username,bio,name,phone)
     }
 
 
@@ -40,7 +87,7 @@ const Edit = ({navigation}) => {
         }
     
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All, // Allow both images and videos
+          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Allow both images and videos
           allowsEditing: true,
           quality: 1,
         });
@@ -104,46 +151,41 @@ const Edit = ({navigation}) => {
     return (
         <View style={styles.container}>
             <View style={styles.group1}>
-                <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
-                    <View style={styles.arrowcontainer} >
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
-                    </View>
-                    <Text style={styles.text}>Edit profile</Text>
-                </TouchableOpacity>
+                <View style={styles.leftSection}> 
+                    <Text style={styles.text}>Set up profile</Text>
+                </View>
             </View>
             <View style={styles.profilecontainer}>
             <Image
-                source={media && media.uri ? { uri: media.uri } : require('./download.jpg')}
+                source={media && media.uri ? { uri: media.uri } : require('./download.png')}
                 style={styles.profilepic}
             />
             <TouchableOpacity onPress={openEditModal}>
-                <Text style={styles.profiletext}>Edit profile</Text>
+                <Text style={styles.profiletext}>Set new profile picture</Text>
             </TouchableOpacity>
         </View>
             <View style={styles.detailcontainer}>
                 <Text style={styles.detaillabel}>Username</Text>
-                <TouchableOpacity onPress={handleusername}><Text style={styles.detailvalue}>value</Text></TouchableOpacity>
+                <TextInput
+                    style={styles.detailvalue}
+                    value={username}
+                    onChangeText={setUsername}
+                    placeholder="value"
+                    placeholderTextColor="#888"
+                />
             </View>
             <View style={styles.detailcontainer}>
                 <Text style={styles.detaillabel}>Bio</Text>
-                <TouchableOpacity onPress={handlebio}><Text style={styles.detailvalue}>value</Text></TouchableOpacity>
+                <TextInput
+                    style={styles.detailvalue}
+                    value={bio}
+                    onChangeText={setBio}
+                    placeholder="value"
+                    placeholderTextColor="#888"
+                />
             </View>
-            <View style={styles.personal_info_container}>
-                <Text style={styles.detailvalue}>Personal information</Text>
-                <TouchableOpacity style={styles.button} onPress={handlecategory}>
-                    <Text style={styles.buttonText}>Categorie</Text>
-                    <Text style={styles.buttonText}>(Tutor) {<Icon name="chevron-forward-outline" size={25} color="white" style={styles.iconText} />}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={handlelink}>
-                    <Text style={styles.buttonText}>Other website links</Text>
-                    <Text style={styles.buttonText}>{<Icon name="chevron-forward-outline" size={25} color="white" style={styles.iconText} />}</Text>
-                </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={handlegotomanageaccount}>
-                <Text style={styles.linktext}>Personal information details settings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleverify}>
-                <Text style={styles.linktext}>show your profile is verified</Text>
+            <TouchableOpacity style={styles.loginButton} onPress={handlesettinprofile} disabled={loading}>
+                <Text style={styles.loginText}>{loading ? 'setting up profile...' : 'continue'}</Text>
             </TouchableOpacity>
             {timemodalinvisible && (
                 <Modal
@@ -175,7 +217,7 @@ const Edit = ({navigation}) => {
     );
 };
 
-export default Edit;
+export default Setupprofile;
 
 const styles = StyleSheet.create({
     container: {
@@ -233,7 +275,7 @@ const styles = StyleSheet.create({
     },
     detailvalue: {
         color: 'white',
-        fontSize: 26,
+        fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 4,
     },
@@ -332,4 +374,20 @@ const styles = StyleSheet.create({
         marginTop: 400,
         marginBottom: 30,
     },
+    
+  loginButton: {
+    marginTop: 20,
+    marginBottom: 20,
+    marginLeft: 15,
+    marginRight: 15,
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
 });

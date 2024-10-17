@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Theme = ({navigation}) => {
   const [theme, setTheme] = useState('black');
@@ -10,7 +10,7 @@ const Theme = ({navigation}) => {
       {/* Header Section */}
       <TouchableOpacity style={styles.header} onPress={() => navigation.goBack()}>
         <View >
-          <Icon name="arrow-left" size={30} color="white" />
+          <Icon name="arrow-back" size={30} color="white" />
         </View>
         <Text style={styles.headerText}>Theme</Text>
       </TouchableOpacity>
@@ -22,7 +22,7 @@ const Theme = ({navigation}) => {
         onPress={() => setTheme('black')}
       >
         <Icon
-          name={theme === 'black' ? 'dot-circle-o' : 'circle-o'}
+          name={theme === 'black' ? 'radio-button-on-outline' : 'radio-button-off-outline'}
           size={24}
           color="white"
           style={styles.radioIcon}
@@ -39,7 +39,7 @@ const Theme = ({navigation}) => {
         onPress={() => setTheme('white')}
       >
         <Icon
-          name={theme === 'white' ? 'dot-circle-o' : 'circle-o'}
+          name={theme === 'white' ? 'radio-button-on-outline' : 'radio-button-off-outline'}
           size={24}
           color="white"
           style={styles.radioIcon}

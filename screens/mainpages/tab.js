@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { ActivityIndicator, View,Text } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons'; // Change to Ionicons
+import { ActivityIndicator, View, Text } from 'react-native';
 
 // Import screens
 import Home from './home';
@@ -13,29 +13,7 @@ import Profilemenu from './profile';
 const Tabpage = createBottomTabNavigator();
 
 export default function Tab() {
-  const [iconsLoaded, setIconsLoaded] = useState(false);
-
-  useEffect(() => {
-    const loadIcons = async () => {
-      try {
-        await FontAwesome.loadFont(); // Ensure FontAwesome fonts are loaded
-        setIconsLoaded(true);
-      } catch (error) {
-        console.error('Error loading icons', error); // Catch any potential errors
-      }
-    };
-
-    loadIcons();
-  }, []);
-
-  // Show a loading indicator while icons are loading
-  if (!iconsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
-        <ActivityIndicator size="large" color="grey" />
-      </View>
-    );
-  }
+  const [iconsLoaded, setIconsLoaded] = useState(true); // Set to true since Ionicons load automatically
 
   // Render the tab navigator when icons are ready
   return (
@@ -48,33 +26,33 @@ export default function Tab() {
 
           // Determine which icon to show based on the route
           if (route.name === 'Home') {
-            iconName = 'home';
+            iconName = 'home-outline'; // Use Ionicons icon name
           } else if (route.name === 'Market') {
-            iconName = 'shopping-cart';
+            iconName = 'cart'; // Use Ionicons icon name
           } else if (route.name === 'Tutoring') {
-            iconName = 'book';
+            iconName = 'school-outline'; // Use Ionicons icon name
           } else if (route.name === 'Mental') {
-            iconName = 'stethoscope';
+            iconName = 'pulse'; // Use Ionicons icon name
           } else if (route.name === 'Profile') {
+            iconName = 'person-circle'; // Use Ionicons icon name
             return (
               <View style={{ position: 'relative' }}>
-                <FontAwesome name="user-circle-o" size={iconSize} color={color} />
-                {/* Add badge for profile icon */}
+                <Icon name={iconName} size={iconSize} color={color} />
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>3</Text>
                 </View>
               </View>
             );
           }
 
-          // Return the FontAwesome icon
-          return <FontAwesome name={iconName} size={iconSize} color={color} />;
+          // Return the Ionicons icon
+          return <Icon name={iconName} size={iconSize} color={color} />;
         },
         tabBarLabel: () => null, // Hide the tab labels
         tabBarStyle: {
           backgroundColor: 'black', // Set tab bar background color
+          height: 60, // Add padding to the bottom to show the badge
         },
-        tabBarActiveTintColor: '#404040', // Active icon color
+        tabBarActiveTintColor: '#007AFF', // Active icon color
         tabBarInactiveTintColor: 'white', // Inactive icon color
       })}
     >
@@ -91,18 +69,13 @@ export default function Tab() {
 const styles = {
   badge: {
     position: 'absolute',
-    right: -10, // Adjust as necessary
-    top: -5, // Adjust as necessary
+    right: -2, // Adjust as necessary
+    top: -4, // Adjust as necessary
     backgroundColor: 'red',
     borderRadius: 10,
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  badgeText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 12,
   },
 };

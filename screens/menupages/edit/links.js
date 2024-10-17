@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, Animated, Modal, TouchableOpacity, TextInput,Image, Alert } from 'react-native';
 import React, { useRef, useState } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Links = ({navigation}) => {
 
@@ -16,7 +16,7 @@ const Links = ({navigation}) => {
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
                     <View style={styles.arrowcontainer} >
-                        <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
+                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Links</Text>
                 </TouchableOpacity>
@@ -24,7 +24,7 @@ const Links = ({navigation}) => {
             <View style={styles.personal_info_container}>
                 <TouchableOpacity style={styles.button} onPress={handleaddlink} >
                     <Text style={styles.buttonText}>Add new link</Text>
-                    <Text style={styles.buttonText}>{<Icon name="arrow-right" size={25} color="white" style={styles.iconText} />}</Text>
+                    <Text style={styles.buttonText}>{<Icon name="chevron-forward-outline" size={25} color="white" style={styles.iconText} />}</Text>
                 </TouchableOpacity>
                 <Text style={styles.detailvalue}>Manage link</Text>
                 <View style={styles.link}>

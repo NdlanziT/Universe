@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Menu = ({navigation}) => {
 
@@ -61,7 +61,7 @@ const Menu = ({navigation}) => {
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
                     <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
+                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Menu</Text>
                 </View>
@@ -94,7 +94,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>Blocked</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>(25) {<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>(25) {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -103,7 +103,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>notification</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -112,7 +112,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>Accounts privacy</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -121,7 +121,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>Orders and Payments</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -130,7 +130,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>Theme</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -139,7 +139,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>Manage account</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -153,7 +153,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>About</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -162,7 +162,7 @@ const Menu = ({navigation}) => {
                         <Text style={styles.statsText}>Support inbox</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>

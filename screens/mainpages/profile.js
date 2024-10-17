@@ -1,18 +1,109 @@
 import { StyleSheet, Text, View, ScrollView, Animated,Image, Alert, Modal,Share, } from 'react-native';
-import React, { useRef, useState } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React, { useEffect, useRef, useState } from 'react';
+import Icon from 'react-native-vector-icons/Ionicons'; // Change to Ionicons
 import { TouchableOpacity } from 'react-native';
+import { auth,db,storage } from '../../firebase';
 
+import { collection, getDocs,doc, getDoc, query, where } from "firebase/firestore";
+import { ref, getDownloadURL } from "firebase/storage";
 
 const Profilemenu = ({navigation}) => {
+    const user = auth.currentUser;
     const slideAnim = useRef(new Animated.Value(0)).current;
-
+    const [userdata,setUserdata] = useState([])
+    const [userprofile,setProfile] = useState(null)
+    const [posts, setPost] = useState([]);
     const scrollViewRef = useRef(null);
 
   // Function to scroll to a specific position
     const scrollToPosition = (position) => {
       scrollViewRef.current.scrollTo({ y: position, animated: true });
     };
+
+    const fetchUserData = async (userId) => {
+      try {
+        const userDocRef = doc(db, 'users', userId); 
+        const userDoc = await getDoc(userDocRef); // Fetch the document
+        
+        if (userDoc.exists()) {
+          // If the document exists, return the user data
+          const userData = userDoc.data();
+          setUserdata(userData); // Set the user data state
+
+          const profilePictureURL = await fetchProfilePictureURL(userData.profilepictureURL);
+          setProfile(profilePictureURL); // Set the profile picture URL
+        } else {
+          console.log('No such document!');
+          return null; // If the document does not exist
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        return null; // Handle the error, returning null or appropriate response
+      }
+    };
+
+    const fetchProfilePictureURL = async (fileName) => {
+      try {
+        if (fileName == null){
+          const storageRef = ref(storage, `profilepictures/download.png`);
+          const url = await getDownloadURL(storageRef);
+          return url;
+        }else{
+          const storageRef = ref(storage, `profilepictures/${fileName}`);
+          const url = await getDownloadURL(storageRef);
+          return url;
+        }
+      } catch (error) {
+        console.error('Error fetching profile picture:', error);
+        return null;
+      }
+    };
+
+    const fetchPostURL = async (fileName) => {
+      try {
+        const storageRef = ref(storage, `postpictures/${fileName}`);
+        const url = await getDownloadURL(storageRef);
+        return url;
+      } catch (error) {
+        console.error('Error fetching post picture:', error);
+        return null;
+      }
+    };
+
+    const fetchDocumentsByOwner = async (ownerEmail) => {
+      try {
+        // Create a query against the collection
+        const collectionRef = collection(db, 'post'); // Replace 'yourCollection' with your actual collection name
+        const q = query(collectionRef, where('owner', '==', ownerEmail));
+    
+        // Execute the query
+        const querySnapshot = await getDocs(q);
+    
+        // Extract the documents
+        const documents = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const postData = doc.data();
+            const post = {
+              id: doc.id,
+              ...postData,
+            };
+    
+            return post; // Return the updated post object
+          })
+        );
+    
+        setPost(documents);
+      } catch (error) {
+        console.error('Error fetching documents:', error);
+        setPost([]); // Return an empty array or handle the error as needed
+      }
+    };
+    
+
+    useEffect(() => {
+      fetchUserData(user.email)
+      fetchDocumentsByOwner(user.email)
+    }, [posts]);
 
     const sharehandle = async () => {
         try {
@@ -44,13 +135,13 @@ const Profilemenu = ({navigation}) => {
     <View style={styles.container}>
       <View style={styles.group1}>
         <View style={styles.leftSection} >
-          <Text style={styles.text}>Username</Text>
+          <Text style={styles.text}>{userdata.username}</Text>
         </View>
 
         <View style={styles.rightSection}>
           {/* Bell icon with notification dot */}
           <TouchableOpacity style={styles.iconWithBadge} onPress={notificationhandle}>
-            <Icon name="bell" size={30} color="white" style={styles.iconText} />
+            <Icon name="notifications-outline" size={30} color="white" style={styles.iconText} />
             <View style={styles.badge}>
               <Text style={styles.badgeText}>1</Text>
             </View>
@@ -58,8 +149,8 @@ const Profilemenu = ({navigation}) => {
 
           {/* Bars icon with red dot */}
           <TouchableOpacity style={styles.iconWithDot} onPress={menuhandle}>
-            <Icon name="bars" size={30} color="white" style={styles.iconText} />
-            <View style={styles.dot}></View>
+            <Icon name="menu" size={35} color="white" style={styles.iconText} />
+            {/* <View style={styles.dot}></View> */}
           </TouchableOpacity>
         </View>
       </View>
@@ -69,25 +160,25 @@ const Profilemenu = ({navigation}) => {
       >
         <View style={styles.group2}>
             <Image
-                    source={require("./download.jpg")} 
+                    source={{uri : userprofile}} 
                     style={styles.profilepic}
             />
             <TouchableOpacity style={styles.following} onPress={() => scrollToPosition(400)}>
                 <Text style={styles.followingtext} >Post</Text>
-                <Text style={styles.followingtext}>12</Text>
+                <Text style={styles.followingtext}>{Array.isArray(userdata.post) ? userdata.post.length : 0}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.following} onPress={followingpagehandle}>
                 <Text style={styles.followingtext}>Followers</Text>
-                <Text style={styles.followingtext}>12</Text>
+                <Text style={styles.followingtext}>{Array.isArray(userdata.followers) ? userdata.followers.length : 0}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.following} onPress={followingpagehandle}>
                 <Text style={styles.followingtext}>Following</Text>
-                <Text style={styles.followingtext}>12</Text>
+                <Text style={styles.followingtext}>{Array.isArray(userdata.following) ? userdata.following.length : 0}</Text>
             </TouchableOpacity>
         </View>
         <View style={styles.group3}>
-            <Text style={styles.username}>name</Text>
-            <Text style={styles.bio}>your bio</Text>
+            <Text style={styles.username}>{userdata.name}</Text>
+            <Text style={styles.bio}>{userdata.bio}</Text>
             <Text style={styles.link}>1st link</Text>
             <Text style={styles.link}>2nd link</Text>
         </View>
@@ -106,10 +197,50 @@ const Profilemenu = ({navigation}) => {
                 <Text style={styles.buttonText}>share profile</Text>
             </TouchableOpacity>
         </View>
-        <View style={styles.group6}>
-            <Text style={styles.postText}>
-                no post available
-            </Text>
+        
+        <View style={styles.ScrollViewcontainer}>
+          {posts.map((post, index) => (
+            <View key={index} style={styles.postContainer}>
+              <View style={styles.postHeader}>
+                <Image
+                  source={{uri : userprofile}}
+                  style={styles.avatar}
+                />
+                <TouchableOpacity style={styles.postInfo}>
+                  <Text style={styles.buttonText}>{userdata.username}</Text>
+                  <Text style={styles.time}>{post.createdat}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.elipsecontainer}>
+                  <Icon name="ellipsis-horizontal" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Post Content */}
+              <Text style={styles.postContent}>{post.content}</Text>
+
+              {/* Conditionally render postPicture if it's not null */}
+              {post.postPictureURL ? (
+                <Image
+                  source={{ uri: post.postPictureURL }} // Use the fetched image URL
+                  style={styles.postpicture}
+                />
+              ) : null}
+
+              {/* Post Footer (likes, comments) */}
+              <View style={styles.posticonContainer}>
+                <View style={styles.iconWithTextcontainer}>
+                  <TouchableOpacity style={styles.iconWithText}>
+                    <Icon name="heart" size={24} color="white" />
+                    <Text style={styles.iconText}>{post.likes.length}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.iconWithText} >
+                    <Icon name="chatbox" size={24} color="white" />
+                    <Text style={styles.iconText}>{post.comments.length}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ))}
         </View>
       </ScrollView>
       
@@ -245,13 +376,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   username: {
-    fontSize: 22,         // Size similar to Instagram's username
-    fontWeight: 'thin',         // Black color for username
+    fontSize: 15,         // Size similar to Instagram's username
+    fontWeight: 'bold',         // Black color for username
     marginBottom: 4,
     color:"white"      // Spacing below the username
   },
   bio: {
-    fontSize: 18,         // Size similar to Instagram's bio
+    fontSize: 15,         // Size similar to Instagram's bio
     color: '#666',        // Gray color for bio text
     marginBottom: 10,     // Spacing below the bio
     lineHeight: 20,       // Line height for better readability
@@ -337,5 +468,68 @@ closeButtonText: {
     color: 'red',
     fontSize: 16,
     fontWeight: 'bold',
+},
+ScrollViewcontainer: {
+  width: 400,
+  marginLeft: -3,
+},
+postContainer: {
+  padding: 10,
+  marginLeft:25,
+  borderTopWidth: 2, // Add this line for the top border
+  borderTopColor: '#1e1e1e', // Specify the color for the top border
+  borderBottomColor: '#1e1e1e',
+},
+postHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 20,
+},
+avatar: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+},
+postInfo: {
+  flex: 1,
+  marginLeft: 10,
+},
+elipsecontainer:{
+  width: 100,
+  borderRadius: 5,
+  alignItems: 'flex-end',
+},
+time: {
+  color: 'grey',
+},
+postContent: {
+  color: 'white',
+  marginVertical: 5,
+  marginBottom: 10,
+  marginTop: 30,
+},
+iconWithText: {
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 20,
+},
+iconWithTextcontainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+iconText: {
+  color: 'white',
+  marginLeft: 5,
+},
+commentSection: {
+  marginTop: 10,
+  borderTopWidth: 1,
+  borderTopColor: 'grey',
+  paddingTop: 10,
+},
+comment: {
+  color: 'white',
+  marginVertical: 5,
 },
 });

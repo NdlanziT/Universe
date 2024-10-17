@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Manageaccount = ({navigation}) => {
     const changeemail = ()=>{
@@ -22,7 +22,7 @@ const Manageaccount = ({navigation}) => {
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
                     <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
+                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Manage account</Text>
                 </View>
@@ -43,7 +43,7 @@ const Manageaccount = ({navigation}) => {
                         <Text style={styles.statsText}>Change email</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -52,7 +52,7 @@ const Manageaccount = ({navigation}) => {
                         <Text style={styles.statsText}>Change phone</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -66,7 +66,7 @@ const Manageaccount = ({navigation}) => {
                         <Text style={styles.statsText}>Change password</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>{<Icon name="arrow-right" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>

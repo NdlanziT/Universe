@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const FullScreenImagePage = () => {
   const goBack = () => {
@@ -16,7 +16,7 @@ const FullScreenImagePage = () => {
       />
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color="white" />
+          <Icon name="arrow-back" size={24} color="white" />
           <Text style={styles.usernameText}>Username</Text>
         </TouchableOpacity>
       </View>

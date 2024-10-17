@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity,Animated, Modal, Image, Alert } from 'react-native';
 import React, { useState,useRef } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Totalfollowers = ({navigation}) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
@@ -55,7 +55,7 @@ const Totalfollowers = ({navigation}) => {
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
                     <View style={styles.arrowcontainer}  >
-                        <Icon name="arrow-left" size={30} color="white" style={styles.iconText} />
+                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Total followers</Text>
                 </TouchableOpacity>
