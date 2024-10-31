@@ -1,49 +1,98 @@
-import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { updatePassword } from 'firebase/auth'; // Make sure to import updatePassword function from Firebase
+import { CloseButton } from '../../icons/close';
 
-const Changepassword = ({navigation}) => {
-    const [username, setUsername] = useState('');
+const Changepassword = ({ navigation, route }) => {
+    const { auth } = route.params;
+    const user = auth.currentUser; // Get the currently authenticated user
+
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    // Function to handle password change
+    const handleChangePassword = async () => {
+        setLoading(true); // Show the loading indicator
+
+        if (!newPassword || !confirmPassword) {
+            Alert.alert("Please fill in both password fields.");
+            setLoading(false);
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            Alert.alert("Passwords do not match.");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            // Update the user's password
+            await updatePassword(user, newPassword);
+            Alert.alert("Password updated successfully!");
+            setLoading(false);
+        } catch (error) {
+            console.error("Error updating password:", error);
+            Alert.alert("Failed to update password. Please try again.");
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.group1}>
-                <View style={styles.leftSection}>             
-                    <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="close" size={30} color="white" style={styles.iconText} />
+                <View style={styles.leftSection}>
+                    <TouchableOpacity style={styles.iconText} onPress={() => navigation.goBack()}>
+                        <CloseButton size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Change current password </Text>
                 </View>
             </View>
+
             <View style={styles.detailcontainer}>
                 <Text style={styles.detaillabel}>Enter old password</Text>
                 <TextInput
                     style={styles.detailvalue}
-                    value={username}
-                    onChangeText={setUsername}
+                    secureTextEntry
+                    value={oldPassword}
+                    onChangeText={setOldPassword}
+                    placeholder="Old Password"
                     placeholderTextColor="#888"
                 />
             </View>
+
             <View style={styles.detailcontainer}>
                 <Text style={styles.detaillabel}>Enter new password</Text>
                 <TextInput
                     style={styles.detailvalue}
-                    value={username}
-                    onChangeText={setUsername}
+                    secureTextEntry
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="New Password"
                     placeholderTextColor="#888"
                 />
             </View>
+
             <View style={styles.detailcontainer}>
-                <Text style={styles.detaillabel}>repeat entered new password</Text>
+                <Text style={styles.detaillabel}>Repeat new password</Text>
                 <TextInput
                     style={styles.detailvalue}
-                    value={username}
-                    onChangeText={setUsername}
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm New Password"
                     placeholderTextColor="#888"
                 />
             </View>
-            <TouchableOpacity style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save</Text>
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="white" />
+                ) : (
+                    <Text style={styles.saveButtonText}>Save</Text>
+                )}
             </TouchableOpacity>
         </View>
     );
@@ -54,24 +103,25 @@ export default Changepassword;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'black',// Ensure content is spaced evenly with the button at the bottom
+        backgroundColor: 'black',
     },
     group1: {
         marginTop: 30,
         height: 60,
         paddingHorizontal: 20,
-        justifyContent: 'center', 
+        justifyContent: 'center',
         marginBottom: 10,
     },
     leftSection: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1, 
+        flex: 1,
     },
     iconText: {
-        marginRight: 12,
+        marginRight: 10,
+        marginLeft: -10,
     },
-    text:{
+    text: {
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 22,

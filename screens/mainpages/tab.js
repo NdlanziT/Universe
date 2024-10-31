@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/Ionicons'; // Change to Ionicons
-import { ActivityIndicator, View, Text } from 'react-native';
+import { View } from 'react-native';
+
+// Import your icon components
+import { Homeicon } from '../icons/home';
+import { HealthIcon } from '../icons/health';
+import { MarketIcon } from '../icons/market';
+import { TutoringIcon } from '../icons/tutoring';
+import { UserProfileIcon } from '../icons/userprofile';
 
 // Import screens
 import Home from './home';
@@ -13,47 +19,36 @@ import Profilemenu from './profile';
 const Tabpage = createBottomTabNavigator();
 
 export default function Tab() {
-  const [iconsLoaded, setIconsLoaded] = useState(true); // Set to true since Ionicons load automatically
-
-  // Render the tab navigator when icons are ready
   return (
     <Tabpage.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ color, size }) => {
-          let iconName;
-          const iconSize = 30;
-
-          // Determine which icon to show based on the route
+        tabBarIcon: ({ color, size = "40" }) => { // Use color prop here
           if (route.name === 'Home') {
-            iconName = 'home-outline'; // Use Ionicons icon name
+            return <Homeicon color={color} size={35} />;
           } else if (route.name === 'Market') {
-            iconName = 'cart'; // Use Ionicons icon name
+            return <MarketIcon color={color} size={30} />;
           } else if (route.name === 'Tutoring') {
-            iconName = 'school-outline'; // Use Ionicons icon name
+            return <TutoringIcon color={color} size={30} />;
           } else if (route.name === 'Mental') {
-            iconName = 'pulse'; // Use Ionicons icon name
+            return <HealthIcon color={color} size={30} />;
           } else if (route.name === 'Profile') {
-            iconName = 'person-circle'; // Use Ionicons icon name
             return (
               <View style={{ position: 'relative' }}>
-                <Icon name={iconName} size={iconSize} color={color} />
+                <UserProfileIcon color={color} size={30} />
                 <View style={styles.badge}>
+                  {/* Badge content can be added here */}
                 </View>
               </View>
             );
           }
-
-          // Return the Ionicons icon
-          return <Icon name={iconName} size={iconSize} color={color} />;
         },
-        tabBarLabel: () => null, // Hide the tab labels
         tabBarStyle: {
           backgroundColor: 'black', // Set tab bar background color
-          height: 60, // Add padding to the bottom to show the badge
+          height: 69, // Add padding to the bottom to show the badge
         },
-        tabBarActiveTintColor: '#007AFF', // Active icon color
-        tabBarInactiveTintColor: 'white', // Inactive icon color
+        tabBarActiveTintColor: '#007AFF', // Active icon color (blue)
+        tabBarInactiveTintColor: 'white', // Inactive icon color (white)
       })}
     >
       <Tabpage.Screen name="Home" component={Home} />

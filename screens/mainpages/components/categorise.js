@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+
+import { BackButton } from "../../icons/back";
+import { RadioButtonOn } from "../../icons/radioon";
+import { RadioButtonOff } from "../../icons/raadiooff";
+
 
 const Categorise = ({ navigation, route }) => {
-  const { setCategory } = route.params;
+  const { setCategory,category } = route.params;
 
-  const [selectedCategory, setSelectedCategory] = useState("marketplace");
+  const [selectedCategory, setSelectedCategory] = useState(category);
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
@@ -15,20 +19,20 @@ const Categorise = ({ navigation, route }) => {
 
   const renderRadioButton = (value) => {
     return selectedCategory === value ? (
-      <Ionicons name="radio-button-on" size={24} color="white" />
+      <RadioButtonOn size={30} color="white" />
     ) : (
-      <Ionicons name="radio-button-off" size={24} color="white" />
+      <RadioButtonOff size={24} color="white" />
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.topBar} onPress={() => navigation.goBack()}>
+        <View >
+          <BackButton size={30} color="white" />
+        </View>
         <Text style={styles.title}>categorise</Text>
-      </View>
+      </TouchableOpacity>
 
       <Text style={styles.header}>categorise your post as</Text>
       <Text style={styles.subHeader}>
@@ -39,9 +43,9 @@ const Categorise = ({ navigation, route }) => {
       <View style={styles.categoryContainer}>
         <TouchableOpacity
           style={styles.categoryOption}
-          onPress={() => handleCategorySelect("marketplace")}
+          onPress={() => handleCategorySelect("market place")}
         >
-          {renderRadioButton("marketplace")}
+          {renderRadioButton("market place")}
           <View style={styles.optionTextContainer}>
             <Text style={styles.categoryTitle}>market place</Text>
             <Text style={styles.categoryDescription}>
@@ -52,9 +56,9 @@ const Categorise = ({ navigation, route }) => {
 
         <TouchableOpacity
           style={styles.categoryOption}
-          onPress={() => handleCategorySelect("tutoringservice")}
+          onPress={() => handleCategorySelect("tutoring service")}
         >
-          {renderRadioButton("tutoringservice")}
+          {renderRadioButton("tutoring service")}
           <View style={styles.optionTextContainer}>
             <Text style={styles.categoryTitle}>tutoring service</Text>
             <Text style={styles.categoryDescription}>
@@ -77,6 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingBottom: 20,
+    marginTop: 25,
   },
   title: {
     fontSize: 20,

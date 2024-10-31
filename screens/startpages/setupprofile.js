@@ -5,76 +5,79 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { db,storage } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; 
+import { ref, uploadBytes } from "firebase/storage"; 
 
 const Setupprofile = ({ route,navigation }) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
     const slideAnimEdit = useRef(new Animated.Value(0)).current;
 
-    const { name, phone, email, user } = route.params;
-
+    const { name, phone, email} = route.params;
     const [loading, setLoading] = useState(false);
     const [bio, setBio] = useState('');
     const [username, setUsername] = useState('');
     const [media, setMedia] = useState(null);
-    const [imagename,setImagename] = useState("");
 
 
-const input_user_info = async (email, username, bio, name, phone) => {
-    setLoading(true);
-    
-    try {
-        let imagename; // Declare imagename to use it later
-
-        if (media) {
-            // Create the image name synchronously
-            imagename = `${name}${email}${phone}${user.id}`;
-
-            const response = await fetch(media.uri); // Fetch the image from the URI
-            const blob = await response.blob();  // Convert the image to a blob
-
-            const storageRef = ref(storage, `profilepictures/${imagename}`); // Create a reference to the storage location
-            await uploadBytes(storageRef, blob); // Upload the image blob
-            
-            // Get the URL for the uploaded image (if you need it)
-            const imageUrl = await getDownloadURL(storageRef); // You can keep this for other purposes if needed
-        } else {
-            imagename = null; // Set imagename to null if no media is selected
+    const input_user_info = async (email, username, bio, name, phone, media) => {
+        // Validate that username is not empty
+        if (!username || username.trim() === "") {
+            Alert.alert("Error", "Username cannot be empty."); // Show an alert to the user
+            return; // Exit the function if validation fails
         }
-
-        const userRef = doc(db, 'users', email); // Use email as the document ID
-        await setDoc(userRef, {
-            email: email,
-            name: name,
-            username: username,
-            bio: bio,
-            phone: phone,
-            apptheme: true,
-            verify: false,
-            post: [],
-            following: [],
-            followers: [],
-            blocked: [],
-            chat: [],
-            favourites: [],
-            saved: [],
-            profilepictureURL: imagename, // Assign imagename directly
-            links: {},
-        });
-
-        navigation.navigate('Tab');
-    } catch (error) {
-        console.error('Error updating your data in the database: ', error);
-    } finally {
-        setLoading(false); // Stop loading indicator
-    }
-};
+    
+        setLoading(true);
+        
+        try {
+            let imagename; // Declare imagename to use it later
+    
+            if (media) {
+                // Create the image name synchronously
+                imagename = `${name}${phone}${email}`;
+    
+                const response = await fetch(media.uri); // Fetch the image from the URI
+                const blob = await response.blob();  // Convert the image to a blob
+    
+                const storageRef = ref(storage, `profilepictures/${imagename}`); // Create a reference to the storage location
+                await uploadBytes(storageRef, blob); 
+            } else {
+                imagename = null; // Set imagename to null if no media is selected
+            }
+    
+            const userRef = doc(db, 'users', email); // Use email as the document ID
+            await setDoc(userRef, {
+                email: email,
+                name: name,
+                username: username,
+                bio: bio,
+                phone: phone,
+                apptheme: true,
+                verify: false,
+                following: [],
+                followers: [],
+                blocked: [],
+                chat: [],
+                favourites: [],
+                post:0,
+                saved: [],
+                profilepicture: imagename, // Assign imagename directly
+                links: {},
+                privacy: "public", //
+            });
+    
+            navigation.navigate('Tab');
+        } catch (error) {
+            console.error('Error updating your data in the database: ', error);
+        } finally {
+            setLoading(false); // Stop loading indicator
+        }
+    };
+    
 
     
 
 
     const handlesettinprofile = ()=>{
-        input_user_info(email,username,bio,name,phone)
+        input_user_info(email,username,bio,name,phone,media)
     }
 
 
@@ -317,7 +320,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: 'white',
+        backgroundColor: '#28282B',
         padding: 20,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
     modalText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
         textAlign: 'center',
         marginBottom: 20,
     },
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
     closeButton: {
         marginTop: 50,
         alignItems: 'center',
-        backgroundColor: 'gray',
+        backgroundColor: 'black',
         padding: 10,
         borderRadius: 10,
     },

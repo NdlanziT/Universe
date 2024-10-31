@@ -1,6 +1,9 @@
 import { StyleSheet, Text, View, ScrollView, Animated, Modal, TouchableOpacity, TextInput,Image, Alert } from 'react-native';
 import React, { useRef, useState } from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
+
+import { BackButton } from '../../icons/back';
+import { ForwardIcon } from '../../icons/foward';
+import { BinIcon } from '../../icons/bin';
 
 const Links = ({navigation}) => {
 
@@ -16,7 +19,7 @@ const Links = ({navigation}) => {
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
                     <View style={styles.arrowcontainer} >
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
+                        <BackButton size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Links</Text>
                 </TouchableOpacity>
@@ -24,12 +27,12 @@ const Links = ({navigation}) => {
             <View style={styles.personal_info_container}>
                 <TouchableOpacity style={styles.button} onPress={handleaddlink} >
                     <Text style={styles.buttonText}>Add new link</Text>
-                    <Text style={styles.buttonText}>{<Icon name="chevron-forward-outline" size={25} color="white" style={styles.iconText} />}</Text>
+                    <Text style={styles.buttonText}>{<ForwardIcon size={25} color="white" style={styles.iconText} />}</Text>
                 </TouchableOpacity>
                 <Text style={styles.detailvalue}>Manage link</Text>
                 <View style={styles.link}>
                     <Text  style={styles.linktext}>whatsapp</Text>
-                    <TouchableOpacity onPress={handledeleletelink} ><Text>{<Icon name="trash" size={25} color="red" style={styles.iconText} />}</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={handledeleletelink} ><Text>{<BinIcon size={25} color="red" style={styles.iconText} />}</Text></TouchableOpacity>
                 </View>
             </View>
         </View>

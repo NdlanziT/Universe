@@ -1,32 +1,35 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { RadioButtonOff } from "../../icons/raadiooff";
+import { RadioButtonOn } from "../../icons/radioon";
+import { BackButton } from "../../icons/back";
 
 const PostPrivacy = ({ navigation, route }) => {
-  const [selectedPrivacy, setSelectedPrivacy] = useState("publicUniVerse"); // Default privacy option
+  const { privacy, setPrivacy } = route.params;
+  const [selectedPrivacy, setSelectedPrivacy] = useState(privacy); // Default privacy option
 
   const handlePrivacyChange = (privacyOption) => {
     setSelectedPrivacy(privacyOption);
-    route.params.setPrivacy(privacyOption);
+    setPrivacy(privacyOption);
     navigation.goBack();
   };
 
   const renderRadioButton = (value) => {
     return selectedPrivacy === value ? (
-      <Ionicons name="radio-button-on" size={24} color="white" />
+      <RadioButtonOn size={24} color="white" />
     ) : (
-      <Ionicons name="radio-button-off" size={24} color="white" />
+      <RadioButtonOff size={24} color="white" />
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.topBar} onPress={() => navigation.goBack()}>
+        <View >
+          <BackButton size={30} color="white" />
+        </View>
         <Text style={styles.title}>post audience</Text>
-      </View>
+      </TouchableOpacity>
 
       <Text style={styles.heading}>who can see your post!</Text>
       <Text style={styles.description}>
@@ -37,31 +40,31 @@ const PostPrivacy = ({ navigation, route }) => {
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => handlePrivacyChange("publicUniVerse")}
+        onPress={() => handlePrivacyChange("Public")}
       >
-        {renderRadioButton("publicUniVerse")}
+        {renderRadioButton("Public")}
         <View style={styles.optionTextContainer}>
-          <Text style={styles.optionText}>public</Text>
+          <Text style={styles.optionText}>Public</Text>
           <Text style={styles.optionDescription}>anyone at UniVerse</Text>
         </View>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => handlePrivacyChange("publicFollowers")}
+        onPress={() => handlePrivacyChange("Private")}
       >
-        {renderRadioButton("publicFollowers")}
+        {renderRadioButton("Private")}
         <View style={styles.optionTextContainer}>
-          <Text style={styles.optionText}>public</Text>
+          <Text style={styles.optionText}>Private</Text>
           <Text style={styles.optionDescription}>anyone who follows you</Text>
         </View>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => handlePrivacyChange("onlyMe")}
+        onPress={() => handlePrivacyChange("only Me")}
       >
-        {renderRadioButton("onlyMe")}
+        {renderRadioButton("only Me")}
         <View style={styles.optionTextContainer}>
           <Text style={styles.optionText}>only me</Text>
           <Text style={styles.optionDescription}>
@@ -83,6 +86,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    marginTop: 25,
   },
   title: {
     color: "white",

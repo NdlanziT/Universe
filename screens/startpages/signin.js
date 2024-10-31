@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image, Alert, Keyboard } from 'react-native';
 import { auth } from '../../firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 
@@ -10,6 +10,23 @@ const SignUp = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    // Add event listeners for keyboard show and hide
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    // Cleanup event listeners on unmount
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const handleSignUp = async () => {
     if (!name || !phone || !email || !password || !confirmPassword) {
@@ -35,7 +52,7 @@ const SignUp = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Sign up to Universe!</Text>
+      {!isKeyboardVisible && <Text style={styles.header}>Sign up to Universe!</Text>}
 
       <TextInput
         style={styles.input}
@@ -56,6 +73,7 @@ const SignUp = ({ navigation }) => {
         placeholder="Enter Email"
         placeholderTextColor="#d9d9d9"
         value={email}
+        keyboardType="email-address"  // Set keyboard type to email
         onChangeText={setEmail}
       />
       <TextInput

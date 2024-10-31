@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Switch, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { BackButton } from '../../icons/back';
+
 const NotificationSettings = ({navigation}) => {
   const [pushNotification, setPushNotification] = useState(true);
   const [postNotification, setPostNotification] = useState(true);
@@ -13,7 +15,7 @@ const NotificationSettings = ({navigation}) => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={() => navigation.goBack()}>
         <View >
-          <Icon name="arrow-back" size={30} color="white" />
+          <BackButton size={30} color="white" />
         </View>
         <Text style={styles.headerText}>notification settings</Text>
       </TouchableOpacity>

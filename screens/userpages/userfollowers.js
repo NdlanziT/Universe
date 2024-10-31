@@ -1,12 +1,30 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
-import React, { useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { db,storage } from '../../firebase';
+import {collection, query, where, limit, getDocs,doc,updateDoc,arrayUnion,arrayRemove} from 'firebase/firestore';
+import { ref, getDownloadURL } from "firebase/storage";
 
-const Userfollowers = ({navigation}) => {
+
+import { BackButton } from '../icons/back';
+
+const Userfollowers = ({navigation,route}) => {
     const [search, setSearch] = useState("");
     const [activePage, setActivePage] = useState('followers'); 
+    const [loading,setLoading] = useState(true)
+    const [usersfollowers,setUsersfollowers] = useState([])
+    const [userfollowing,setUsersFollowing] = useState([])
+    const [mutual,setMutual] = useState([])
 
     const backbutton = ()=>{navigation.goBack()}
+
+    const {username,email,followers,following,myfollowing,myemail} = route.params
+
+    const commonEmails = myfollowing.filter(email => following.includes(email) || followers.includes(email));
+
+    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail)=>{
+        navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail})
+    }
     
     const removefollowers = ()=>{
         Alert.alert("remove followers button");
@@ -15,15 +33,153 @@ const Userfollowers = ({navigation}) => {
         Alert.alert("unfollows people you follow button");
     }
 
+    const fetchmutual = async (emailsArray) => {
+        setLoading(true); // Set loading to true while fetching users
+    
+        // Check if emailsArray is empty
+        if (!emailsArray || emailsArray.length === 0) {
+            console.warn('Emails array is empty. No users to fetch.');
+            setLoading(false);
+            return []; // Return an empty array if no emails are provided
+        }
+    
+        const usersCollection = collection(db, 'users'); // Reference to 'users' collection
+    
+        // Query to fetch users whose 'email' field is in the array of emails
+        const usersQuery = query(usersCollection, where('email', 'in', emailsArray));
+    
+        try {
+            const querySnapshot = await getDocs(usersQuery); // Execute the query
+            const profilePicturePromises = querySnapshot.docs.map(async (doc) => {
+                const userData = { id: doc.id, ...doc.data() }; // Get user data
+                userData.profilepic = await fetchProfilePictureURL(userData.profilepicture);
+                userData.followstate = true
+                return userData; // Return user data with profile picture
+            });
+    
+            // Wait for all profile picture fetches to complete
+            const usersWithPictures = await Promise.all(profilePicturePromises);
+    
+            setMutual(usersWithPictures); // Return the array of users
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false); // Always set loading to false at the end
+        }
+    };
+
+    const fetchfollowers = async (emailsArray,myfollowing) => {
+        setLoading(true); // Set loading to true while fetching users
+    
+        // Check if emailsArray is empty
+        if (!emailsArray || emailsArray.length === 0) {
+            console.warn('Emails array is empty. No users to fetch.');
+            setLoading(false);
+            return []; // Return an empty array if no emails are provided
+        }
+    
+        const usersCollection = collection(db, 'users'); // Reference to 'users' collection
+    
+        // Query to fetch users whose 'email' field is in the array of emails
+        const usersQuery = query(usersCollection, where('email', 'in', emailsArray));
+    
+        try {
+            const querySnapshot = await getDocs(usersQuery); // Execute the query
+            const profilePicturePromises = querySnapshot.docs.map(async (doc) => {
+                const userData = { id: doc.id, ...doc.data() }; // Get user data
+                userData.profilepic = await fetchProfilePictureURL(userData.profilepicture);
+                if (myfollowing.includes(userData.email)) {
+                    userData.followingstate = true; // Email is in myfollowers
+                } else {
+                    userData.followingstate = false; // Email is not in myfollowers
+                }
+                return userData; // Return user data with profile picture
+            });
+    
+            // Wait for all profile picture fetches to complete
+            const usersWithPictures = await Promise.all(profilePicturePromises);
+    
+            setUsersfollowers(usersWithPictures); // Return the array of users
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false); // Always set loading to false at the end
+        }
+    };
+      const fetchfollowings = async (emailsArray,myfollowing) => {
+        setLoading(true); // Set loading to true while fetching users
+    
+        // Check if emailsArray is empty
+        if (!emailsArray || emailsArray.length === 0) {
+            console.warn('Emails array is empty. No users to fetch.');
+            setLoading(false);
+            return []; // Return an empty array if no emails are provided
+        }
+    
+        const usersCollection = collection(db, 'users'); // Reference to 'users' collection
+    
+        // Query to fetch users whose 'email' field is in the array of emails
+        const usersQuery = query(usersCollection, where('email', 'in', emailsArray));
+    
+        try {
+            const querySnapshot = await getDocs(usersQuery); // Execute the query
+            const profilePicturePromises = querySnapshot.docs.map(async (doc) => {
+                const userData = { id: doc.id, ...doc.data() }; // Get user data
+                userData.profilepic = await fetchProfilePictureURL(userData.profilepicture); // Fetch the profile picture URL
+                if (myfollowing.includes(userData.email)) {
+                    userData.followingstate = true; // Email is in myfollowers
+                } else {
+                    userData.followingstate = false; // Email is not in myfollowers
+                }
+                return userData; // Return user data with profile picture
+            });
+    
+            // Wait for all profile picture fetches to complete
+            const usersWithPictures = await Promise.all(profilePicturePromises);
+    
+            setUsersFollowing(usersWithPictures); // Return the array of users
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false); // Always set loading to false at the end
+        }
+    };
+    const fetchProfilePictureURL = async (fileName) => {
+        try {
+          if (fileName == null){
+            const storageRef = ref(storage, `profilepictures/download.png`);
+            const url = await getDownloadURL(storageRef);
+            return url;
+          }else{
+            const storageRef = ref(storage, `profilepictures/${fileName}`);
+            const url = await getDownloadURL(storageRef);
+            return url;
+          }
+        } catch (error) {
+          console.error('Error fetching profile picture:', error);
+          return null;
+        }
+      };
+
+      useEffect(() => {
+        const fetchData = async () => {
+            await fetchfollowers(followers, myfollowing);
+            await fetchfollowings(following, myfollowing);
+            await fetchmutual(commonEmails);
+        };
+
+        fetchData(); // Call the async function
+
+    }, []);
+    
+
 
     return (
         <View style={styles.container}>
             <View style={styles.group1}>
-                <TouchableOpacity style={styles.leftSection} onPress={backbutton}>             
-                    <View >
-                        <Icon name="arrow-back" size={25} color="white" style={styles.iconText} />
-                    </View >
-                    <Text style={styles.text}>Username</Text>
+                <TouchableOpacity style={styles.leftSection} onPress={backbutton}> 
+                    <Text ><BackButton size={30} color="white" /></Text>  
+                    <Text style={styles.text}>{username}</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.buttonContainer}>
@@ -35,7 +191,7 @@ const Userfollowers = ({navigation}) => {
                         ]} 
                         onPress={() => setActivePage('followers')}
                     >
-                        <Text style={styles.buttonText}>Followers (3)</Text>
+                        <Text style={styles.buttonText}>Followers ({followers.length})</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={[
@@ -44,7 +200,7 @@ const Userfollowers = ({navigation}) => {
                         ]}
                         onPress={() => setActivePage('following')}
                     >
-                        <Text style={styles.buttonText}>Following (3)</Text>
+                        <Text style={styles.buttonText}>Following ({following.length})</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={[
@@ -53,7 +209,7 @@ const Userfollowers = ({navigation}) => {
                         ]}
                         onPress={() => setActivePage('mutual')}
                     >
-                        <Text style={styles.buttonText}>mutual (1)</Text>
+                        <Text style={styles.buttonText}>mutual ({commonEmails.length})</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -67,19 +223,38 @@ const Userfollowers = ({navigation}) => {
                             value={search}
                             onChangeText={setSearch}
                         />
-                        <Text style={styles.textfollowers}>All Followers</Text>
-                        <View style={styles.group3}>
-                            <Image
-                                source={require('./download.jpg')} 
-                                style={styles.profilepic}
-                            />
+                        {loading ?(
                             <View>
-                                <Text style={styles.buttonText}>Username</Text>
+                                <ActivityIndicator color={"white"} size={'large'}/>
                             </View>
-                            <TouchableOpacity style={styles.followbtn} onPress={removefollowers}>
-                                <Text style={styles.buttonText}>Follow</Text>
+                        ):(
+                            usersfollowers.map((user,index) => (
+                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail)}}>
+                                <Image
+                                    source={{uri: user.profilepic}} 
+                                    style={styles.profilepic}
+                                />
+                                <View>
+                                    <Text style={styles.buttonText}>{user.username}</Text>
+                                </View>
+                                {user.email !== myemail?(
+                                    <TouchableOpacity 
+                                    style={user.followingstate ? styles.unfollowbtn : styles.followbtn}  // Conditionally apply styles
+                                    onPress={user.followingstate ? unfollows : unfollows} 
+                                    >
+                                        <Text style={styles.buttonText}>
+                                            {user.followingstate ? 'Unfollow' : 'Follow'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    ):(
+                                    <View style={styles.followbtnme} >
+                                    <Text style={styles.buttonText}></Text>
+                                </View>
+                            )}
                             </TouchableOpacity>
-                        </View>
+                            ))
+                            
+                        )}
                     </>
                 )}
                 {activePage === 'following' && (
@@ -91,19 +266,36 @@ const Userfollowers = ({navigation}) => {
                             value={search}
                             onChangeText={setSearch}
                         />
-                        <Text style={styles.textfollowers}>All Following</Text>
-                        <View style={styles.group3}>
-                            <Image
-                                source={require('./download.jpg')} 
-                                style={styles.profilepic}
-                            />
+                        {loading ?(
                             <View>
-                                <Text style={styles.buttonText}>Username</Text>
+                                <ActivityIndicator size={'large'} color={"white"}/>
                             </View>
-                            <TouchableOpacity style={styles.followbtn} onPress={unfollows}>
-                                <Text style={styles.buttonText}>Follow</Text>
-                            </TouchableOpacity>
-                        </View>
+                        ):(
+                            userfollowing.map((user,index)=>(
+                                <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail)}}>
+                                    <Image
+                                        source={{uri: user.profilepic}} 
+                                        style={styles.profilepic}
+                                    />
+                                    <View>
+                                        <Text style={styles.buttonText}>{user.username}</Text>
+                                    </View>
+                                    {user.email !== myemail?(
+                                    <TouchableOpacity 
+                                    style={user.followingstate ? styles.unfollowbtn : styles.followbtn}  // Conditionally apply styles
+                                    onPress={user.followingstate ? unfollows : unfollows} 
+                                    >
+                                        <Text style={styles.buttonText}>
+                                            {user.followingstate ? 'Unfollow' : 'Follow'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    ):(
+                                    <View style={styles.followbtnme} onPress={unfollows}>
+                                        <Text style={styles.buttonText}></Text>
+                                    </View>)}
+                                </TouchableOpacity>
+                            ))
+                        )}
                     </>
                 )}
                 {activePage === 'mutual' && (
@@ -115,20 +307,28 @@ const Userfollowers = ({navigation}) => {
                                             value={search}
                                             onChangeText={setSearch}
                                         />
-                                        <Text style={styles.textfollowers}>All mutual Followers</Text>
-                                        <View style={styles.group3}>
-                                            <Image
-                                                source={require('./download.jpg')} 
-                                                style={styles.profilepic}
-                                            />
-                                            <View>
-                                                <Text style={styles.buttonText}>Username</Text>
-                                            </View>
-                                            <TouchableOpacity style={styles.remove} onPress={unfollows}>
-                                                <Text style={styles.buttonText}>Unfollow</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                        <Text style={styles.textfollowers}>Suggest for you</Text>
+                                        <Text style={styles.textfollowers}>All mutual Followings</Text>
+                                        {loading ?(
+                                             <View>
+                                                 <ActivityIndicator size={'large'} color={"white"}/>
+                                             </View>
+                                        ):(
+                                            mutual.map((user, index) =>(
+                                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail)}}>
+                                                <Image
+                                                    source={{uri: user.profilepic}} 
+                                                    style={styles.profilepic}
+                                                />
+                                                <View>
+                                                    <Text style={styles.buttonText}>{user.username}</Text>
+                                                </View>
+                                                <TouchableOpacity style={user.followstate ? styles.remove : styles.followbtn} onPress={unfollows}>
+                                                    <Text style={styles.buttonText}>{user.followstate ?  "Unfollow" : "Follow"}</Text>
+                                                </TouchableOpacity>
+                                            </TouchableOpacity>)
+                                            )
+                                        )}
+                                        {/* <Text style={styles.textfollowers}>Suggest for you</Text>
                                         <View style={styles.group3}>
                                             <Image
                                                 source={require('./download.jpg')} 
@@ -140,7 +340,7 @@ const Userfollowers = ({navigation}) => {
                                             <TouchableOpacity style={styles.followbtn} onPress={unfollows}>
                                                 <Text style={styles.buttonText}>Follow</Text>
                                             </TouchableOpacity>
-                                        </View>
+                                        </View> */}
                                     </>
                 )}
             </ScrollView>
@@ -202,6 +402,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 22,
+        marginLeft: 10,
     },
     textfollowers:{
         marginTop:20,
@@ -238,6 +439,24 @@ const styles = StyleSheet.create({
     },
     followbtn: {
         backgroundColor: "#007AFF",
+        height: 40,
+        width: 120,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        marginLeft: 60,
+    },
+    unfollowbtn: {
+        backgroundColor: "#434343",
+        height: 40,
+        width: 120,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        marginLeft: 60,
+    },
+    followbtnme: {
+        backgroundColor: "black",
         height: 40,
         width: 120,
         justifyContent: 'center',

@@ -1,26 +1,60 @@
-import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput,ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { updateDoc,doc } from 'firebase/firestore';
+import { db } from '../../../firebase';
 
-const Changephone = ({navigation}) => {
-    const [username, setUsername] = useState('');
+import { CloseButton } from '../../icons/close';
 
+const Changephone = ({navigation,route}) => {
+    const [loading, setLoading] = useState('');
+    const [oldphone,setOldhone] = useState('');
+    const [confirmPhone, setConfirmPhone] = useState('');
+    const {auth,phone,setPhone} = route.params
+
+    const handlePhoneChange = async ()=>{
+        setLoading(true)
+        if(oldphone === ''){
+            alert('Please enter your old phone number')
+            setLoading(false);
+        }else if(confirmPhone === ''){
+            alert('Please enter your new phone number')
+            setLoading(false);
+        } else if(oldphone !== phone){
+            alert('Old and new phone number are not same')
+            setLoading(false);
+        } else if(confirmPhone.length!== 10){
+            alert('new Phone number should be 10 digits')
+        } else {
+            try {
+              await updateDoc(doc(db, 'users', email), {
+                  phone: confirmPhone,
+              });
+              setPhone(confirmPhone);
+              setLoading(false);
+              navigation.goBack();
+          } catch (error) {
+            setLoading(false);
+            navigation.goBack();
+              console.error('Error updating document: ', error);
+          }
+        }
+    }
     return (
         <View style={styles.container}>
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
-                    <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="close" size={30} color="white" style={styles.iconText} />
+                    <TouchableOpacity style={styles.iconText} onPress={() => navigation.goBack()}>
+                        <CloseButton size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
-                    <Text style={styles.text}>Change current phone numbers </Text>
+                    <Text style={styles.text}>Change current phone</Text>
                 </View>
             </View>
             <View style={styles.detailcontainer}>
                 <Text style={styles.detaillabel}>Enter old phone number</Text>
                 <TextInput
                     style={styles.detailvalue}
-                    value={username}
-                    onChangeText={setUsername}
+                    value={oldphone}
+                    onChangeText={setOldhone}   
                     placeholderTextColor="#888"
                 />
             </View>
@@ -28,13 +62,17 @@ const Changephone = ({navigation}) => {
                 <Text style={styles.detaillabel}>Enter new phone number</Text>
                 <TextInput
                     style={styles.detailvalue}
-                    value={username}
-                    onChangeText={setUsername}
+                    value={confirmPhone}
+                    onChangeText={setConfirmPhone}
                     placeholderTextColor="#888"
                 />
             </View>
-            <TouchableOpacity style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handlePhoneChange}>
+                {loading ? (
+                        <ActivityIndicator size="small" color="white" />
+                    ) : (
+                        <Text style={styles.saveButtonText}>Save</Text>
+                    )}
             </TouchableOpacity>
         </View>
     );
@@ -60,7 +98,8 @@ const styles = StyleSheet.create({
         flex: 1, 
     },
     iconText: {
-        marginRight: 12,
+        marginRight: 10,
+        marginLeft: -10,
     },
     text:{
         color: '#fff',

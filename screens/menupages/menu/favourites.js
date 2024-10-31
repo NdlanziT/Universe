@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image,
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { BackButton } from '../../icons/back';
+
 const Favourites = ({navigation}) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
     
@@ -9,8 +11,8 @@ const Favourites = ({navigation}) => {
         <View style={styles.container}>
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
-                    <View style={styles.arrowcontainer} >
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
+                    <View style={styles.iconText} >
+                        <BackButton size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Favourites</Text>
                 </TouchableOpacity>
@@ -34,7 +36,8 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     iconText: {
-        marginRight: 12,
+        marginRight: 10,
+        marginLeft:-10,
     },
     leftSection: {
         flexDirection: 'row',

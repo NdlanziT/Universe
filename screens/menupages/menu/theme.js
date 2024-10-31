@@ -1,16 +1,36 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { updateDoc,doc } from 'firebase/firestore';
+import { db } from '../../../firebase';
 
-const Theme = ({navigation}) => {
-  const [theme, setTheme] = useState('black');
+import { BackButton } from '../../icons/back';
+import { RadioButtonOn } from '../../icons/radioon';
+import { RadioButtonOff } from '../../icons/raadiooff';
+
+const Theme = ({navigation,route}) => {
+  const {theme, setTheme,email} = route.params;
+  const [selectedTheme, Setselectedtheme] =  useState(theme)
+
+  const handlebtn = async (theme)=>{
+    try {
+      await updateDoc(doc(db, 'users', email), {
+          theme: theme,
+      });
+      setTheme(theme);
+      navigation.goBack();
+  } catch (error) {
+    navigation.goBack();
+      console.error('Error updating document: ', error);
+  }
+  }
 
   return (
     <View style={styles.container}>
       {/* Header Section */}
       <TouchableOpacity style={styles.header} onPress={() => navigation.goBack()}>
         <View >
-          <Icon name="arrow-back" size={30} color="white" />
+          <BackButton size={30} color="white" />
         </View>
         <Text style={styles.headerText}>Theme</Text>
       </TouchableOpacity>
@@ -19,14 +39,9 @@ const Theme = ({navigation}) => {
       {/* Public Option */}
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setTheme('black')}
+        onPress={() => {Setselectedtheme('black');handlebtn("black")}}
       >
-        <Icon
-          name={theme === 'black' ? 'radio-button-on-outline' : 'radio-button-off-outline'}
-          size={24}
-          color="white"
-          style={styles.radioIcon}
-        />
+        {selectedTheme === 'black' ? <RadioButtonOn size={30} color="white" /> : <RadioButtonOff size={30} color="white" />}
         <View style={styles.optionTextContainer}>
           <Text style={styles.optionText}>Black</Text>
           <Text style={styles.subOptionText}>layout will mostly be black</Text>
@@ -36,14 +51,10 @@ const Theme = ({navigation}) => {
       {/* Private Option */}
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setTheme('white')}
+        onPress={() => {Setselectedtheme('white');handlebtn("white")}}
       >
-        <Icon
-          name={theme === 'white' ? 'radio-button-on-outline' : 'radio-button-off-outline'}
-          size={24}
-          color="white"
-          style={styles.radioIcon}
-        />
+        {selectedTheme === 'white' ? <RadioButtonOn size={30} color="white" /> : <RadioButtonOff size={30} color="white" />}
+
         <View style={styles.optionTextContainer}>
           <Text style={styles.optionText}>White</Text>
           <Text style={styles.subOptionText}>layout will mostly be white</Text>
@@ -94,10 +105,11 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   radioIcon: {
-    marginRight: 10,
+    marginLeft: 10,
   },
   optionTextContainer: {
     flex: 1,
+    marginLeft: 10,
   },
   optionText: {
     color: 'white',

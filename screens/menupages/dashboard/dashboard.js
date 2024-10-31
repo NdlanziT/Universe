@@ -2,6 +2,11 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image,
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons'; // Change to Ionicons
 
+import { BackButton } from '../../icons/back';
+import { ForwardIcon } from '../../icons/foward';
+import { PostBoost } from '../../icons/postboost';
+import {Verifiedicon } from '../../icons/verified';
+
 const Dashboard = ({navigation}) => {
     const reachhandle = ()=>{
         navigation.navigate("Reach")
@@ -25,7 +30,7 @@ const Dashboard = ({navigation}) => {
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
                     <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
+                        <BackButton size={35} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Dashboard</Text>
                 </View>
@@ -44,7 +49,7 @@ const Dashboard = ({navigation}) => {
                         <Text style={styles.statsText}>Accounts reached</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>25 {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>25 {<ForwardIcon size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -53,7 +58,7 @@ const Dashboard = ({navigation}) => {
                         <Text style={styles.statsText}>Accounts engaged</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>25 {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>25 {<ForwardIcon  size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -62,7 +67,7 @@ const Dashboard = ({navigation}) => {
                         <Text style={styles.statsText}>Total followers</Text>
                     </View>
                     <View style={styles.statsnumber}>
-                        <Text style={styles.text}>25 {<Icon name="chevron-forward-outline" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>25 {<ForwardIcon  size={20} color="white" style={styles.iconText} />}</Text>
                         
                     </View>
             </TouchableOpacity>
@@ -70,11 +75,11 @@ const Dashboard = ({navigation}) => {
                 <Text style={styles.toolsheadings}>Tools for you</Text>
             </View>
             <TouchableOpacity style={styles.group5} onPress={postboost}>
-                <Icon name="bar-chart" size={25} color="white" style={styles.iconText} />
+                <PostBoost size={25} color="white" style={styles.iconText} />
                 <Text style={styles.statsText}>Post boost</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.group5} onPress={verifyprofile}>
-                <Icon name="globe" size={25} color="#007AFF" style={styles.iconText} />
+                <Verifiedicon size={25} color="#007AFF" style={styles.iconText} />
                 <Text style={styles.statsText}>verify</Text>
             </TouchableOpacity>
         </View>
@@ -145,6 +150,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 17,
         fontWeight: 'thin',
+        marginLeft: 10,
     },
     statsnumber: {
         marginTop: -3,
@@ -165,6 +171,6 @@ const styles = StyleSheet.create({
     },
     arrowcontainer: {
         position: 'absolute',
-        left: 0,  // Top-left corner
+        left: -10,  // Top-left corner
     },
 });

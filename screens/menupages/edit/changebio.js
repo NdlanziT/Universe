@@ -1,16 +1,40 @@
-import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput,ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { db } from '../../../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
-const ChangeBio = ({navigation}) => {
-    const [username, setUsername] = useState('');
+import { CloseButton } from '../../icons/close';
+
+const ChangeBio = ({navigation,route}) => {
+    const { currentbio,email,setBio,setCurrentbio } = route.params
+    const [value, setvalue] = useState(currentbio);
+    const [loading,setloading] = useState(false)
+
+    const updateBio = async () => {
+        if(value.length > 5){
+            setloading(true);
+            try {
+                await updateDoc(doc(db, 'users', email), {
+                    bio: value,
+                });
+                setBio(value);
+                setCurrentbio(value)
+                setloading(false);
+                navigation.goBack();
+            } catch (error) {
+                console.error('Error updating document: ', error);
+            }
+        }else{
+            alert('bio should be between atleast 6 characters long .')
+        }
+    }
 
     return (
         <View style={styles.container}>
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
                     <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="close" size={30} color="white" style={styles.iconText} />
+                        <CloseButton size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Change bio</Text>
                 </View>
@@ -19,14 +43,17 @@ const ChangeBio = ({navigation}) => {
                 <Text style={styles.detaillabel}>Bio</Text>
                 <TextInput
                     style={styles.detailvalue}
-                    value={username}
-                    onChangeText={setUsername}
-                    placeholder="value"
+                    value={value}
+                    onChangeText={setvalue}
                     placeholderTextColor="#888"
                 />
             </View>
-            <TouchableOpacity style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={updateBio}>
+                    {loading ? (
+                        <ActivityIndicator color={"white"} size={'small'} />
+                    ) : (
+                        <Text style={styles.saveButtonText}>Save</Text>
+                    )}
             </TouchableOpacity>
         </View>
     );
@@ -81,7 +108,7 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     saveButton: {
-        backgroundColor: 'blue',
+        backgroundColor: '#007AFF',
         height: 50,
         justifyContent: 'center',
         alignItems: 'center',

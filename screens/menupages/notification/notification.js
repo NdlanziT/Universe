@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image,
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { BackButton } from '../../icons/back';
+
 const Notications = ({navigation}) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
     
@@ -10,7 +12,7 @@ const Notications = ({navigation}) => {
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
                     <View style={styles.arrowcontainer} >
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
+                        <BackButton size={35} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Notications</Text>
                 </TouchableOpacity>
@@ -46,5 +48,9 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 22,
     },
+    arrowcontainer:{
+        left: -10,
+        top: 0,
+    }
     
 });

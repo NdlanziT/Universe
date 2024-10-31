@@ -1,22 +1,83 @@
 import { StyleSheet, Text, View, ActivityIndicator, Animated, Modal, TouchableOpacity, TextInput,Image, Alert } from 'react-native';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
+import { ref, uploadBytes,getDownloadURL } from "firebase/storage";
 
-const Edit = ({navigation}) => {
+import { db,storage } from '../../../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+
+
+import { BackButton } from '../../icons/back';
+import { ForwardIcon } from '../../icons/foward';
+
+const Edit = ({navigation,route}) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
     const slideAnimEdit = useRef(new Animated.Value(0)).current;
 
     const [loading, setLoading] = useState(false);
-    const [text, setText] = useState('');
     const [media, setMedia] = useState(null);
+    const {name,username,bio,profilepicture,email,setUsername,setBio,setProfilepicture} = route.params;
+    const [currentusername,setCurrentusername] = useState(username);
+    const [currentbio,setCurrentbio] = useState(bio)
+    const [currentprofilepicture,setCurrentprofilepicture] = useState(profilepicture)
 
 
-    const handlecategory = ()=>{
-        Alert.alert("category is not yet available")    }
-    const handlelink = ()=>{
-        navigation.navigate("Links")
-    }
+
+
+    const updateprofilepic = async () => {
+        setLoading(true);
+        try {
+            let imagename = null;
+    
+            if (media) {
+                const currentTime = new Date();
+                imagename = `${name}_${currentTime.getTime()}_${email}`;
+                const response = await fetch(media.uri);
+                const blob = await response.blob();
+                const storageRef = ref(storage, `profilepictures/${imagename}`);
+                await uploadBytes(storageRef, blob);
+                const downloadURL = await getDownloadURL(storageRef);
+                setProfilepicture(downloadURL); // Set the new profile picture URL
+                setCurrentprofilepicture(downloadURL); // Set the current profile picture URL
+            }
+    
+            await updateDoc(doc(db, 'users', email), {
+                profilepicture: imagename, // Update with the new image name
+            });
+        } catch (error) {
+            console.error('Error updating your data in the database: ', error);
+            Alert.alert("Error", "Failed to update your profile picture. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const deleteprofile = async () => {
+        setloading(true);
+        try{
+            await updateDoc(doc(db, 'users', email), {
+                profilepicture: null,
+            });
+            setCurrentprofilepicture(null) // Set the current profile picture URL
+            setProfilepicture(null)
+            setLoading(false)
+            Alert.alert("your profile has picture is succesfuly deleted")
+
+        }catch (error) {
+            setLoading(false)
+            console.error('Error updating your data in the database: ', error);
+        }
+    };
+
+    useEffect(() => {
+        if (media) {
+            updateprofilepic(); // Move this call here to ensure state is updated
+            closeEditModal();
+        }
+    }, [media]);
+
+
     const handlegotomanageaccount = ()=>{
         navigation.navigate("Manageaccount")
     }
@@ -24,51 +85,38 @@ const Edit = ({navigation}) => {
         Alert.alert("verify is not yet available")
     }
     const handleusername = ()=>{
-        navigation.navigate("Changeusername")
+        navigation.navigate("Changeusername",{currentusername,email,setUsername,setCurrentusername})
     }
     const handlebio = ()=>{
-        navigation.navigate("Changebio")
+        navigation.navigate("Changebio",{currentbio,email,setBio,setCurrentbio})
     }
 
 
     const handleSelectMedia = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
-        if (permissionResult.granted === false) {
-          alert("You've refused to allow this app to access your photos!");
-          return;
+        if (!permissionResult.granted) {
+            alert("You've refused to allow this app to access your photos!");
+            return;
         }
     
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All, // Allow both images and videos
-          allowsEditing: true,
-          quality: 1,
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            quality: 1,
         });
     
         if (!result.canceled) {
-          setMedia(result.assets[0]);
+            setMedia(result.assets[0]);
         }
-        handleProfile()
-        closeEditModal()
-
-        
-      };
+    };
+    
 
     const removemedia = ()=> {
-        setMedia(null);
-        handleProfile()
+        deleteprofile()
         closeEditModal()
   
     };
-
-    const handleProfile = () => {
-        setLoading(true);
-    
-        // Simulate a delay to see the loading indicator
-        setTimeout(() => {
-          setLoading(false);
-        }, 2000);
-      };
 
 
     // Open edit modal
@@ -105,15 +153,15 @@ const Edit = ({navigation}) => {
         <View style={styles.container}>
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
-                    <View style={styles.arrowcontainer} >
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
+                    <View style={styles.iconText} >
+                        <BackButton size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Edit profile</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.profilecontainer}>
             <Image
-                source={media && media.uri ? { uri: media.uri } : require('./download.jpg')}
+                source={{ uri : currentprofilepicture }}
                 style={styles.profilepic}
             />
             <TouchableOpacity onPress={openEditModal}>
@@ -121,23 +169,12 @@ const Edit = ({navigation}) => {
             </TouchableOpacity>
         </View>
             <View style={styles.detailcontainer}>
-                <Text style={styles.detaillabel}>Username</Text>
-                <TouchableOpacity onPress={handleusername}><Text style={styles.detailvalue}>value</Text></TouchableOpacity>
+                <Text style={styles.detaillabel}>username</Text>
+                <TouchableOpacity onPress={handleusername}><Text style={styles.valuelabel}>{currentusername}</Text></TouchableOpacity>
             </View>
             <View style={styles.detailcontainer}>
                 <Text style={styles.detaillabel}>Bio</Text>
-                <TouchableOpacity onPress={handlebio}><Text style={styles.detailvalue}>value</Text></TouchableOpacity>
-            </View>
-            <View style={styles.personal_info_container}>
-                <Text style={styles.detailvalue}>Personal information</Text>
-                <TouchableOpacity style={styles.button} onPress={handlecategory}>
-                    <Text style={styles.buttonText}>Categorie</Text>
-                    <Text style={styles.buttonText}>(Tutor) {<Icon name="chevron-forward-outline" size={25} color="white" style={styles.iconText} />}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={handlelink}>
-                    <Text style={styles.buttonText}>Other website links</Text>
-                    <Text style={styles.buttonText}>{<Icon name="chevron-forward-outline" size={25} color="white" style={styles.iconText} />}</Text>
-                </TouchableOpacity>
+                <TouchableOpacity onPress={handlebio}><Text style={styles.valuelabel}>{currentbio}</Text></TouchableOpacity>
             </View>
             <TouchableOpacity onPress={handlegotomanageaccount}>
                 <Text style={styles.linktext}>Personal information details settings</Text>
@@ -195,7 +232,8 @@ const styles = StyleSheet.create({
         flex: 1, 
     },
     iconText: {
-        marginRight: 12,
+        marginRight: 10,
+        marginLeft: -10,
     },
     
     text:{
@@ -231,6 +269,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 4,
     },
+    
+    valuelabel: {
+        color: 'grey',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
     detailvalue: {
         color: 'white',
         fontSize: 26,
@@ -250,7 +295,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         height: 50,
         borderRadius: 10,
-        marginBottom: 10,
+        marginBottom: 5,
+        marginTop: 10,
     },
     buttonText: {
         color: '#fff',
@@ -275,7 +321,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: 'white',
+        backgroundColor: '#28282B',
         padding: 20,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -284,7 +330,7 @@ const styles = StyleSheet.create({
     modalText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
         textAlign: 'center',
         marginBottom: 20,
     },
@@ -299,7 +345,7 @@ const styles = StyleSheet.create({
     closeButton: {
         marginTop: 50,
         alignItems: 'center',
-        backgroundColor: 'gray',
+        backgroundColor: 'black',
         padding: 10,
         borderRadius: 10,
     },

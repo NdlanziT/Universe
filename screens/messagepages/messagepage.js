@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TextInput, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useRoute } from '@react-navigation/native';
+
+import { BackButton } from '../icons/back';
+import { CameraIcon } from '../icons/camera';
+import { SendIcon } from '../icons/send';
+import { CloseButton } from '../icons/close';
 
 const messages = [
   {
@@ -66,7 +69,7 @@ const Messagespage = ({navigation}) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backbtn} onPress={() => navigation.goBack()}>
-            <Icon  name="arrow-back" size={30} color="white" />
+          <BackButton size={30} color="white" />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
           <Image source={require('./download.jpg')} style={styles.smallProfileImage} />
@@ -76,7 +79,6 @@ const Messagespage = ({navigation}) => {
           </View>
         </View>
         <View style={styles.headerIcons}>
-          <Icon name="information-circle-outline" size={24} color="white" />
         </View>
       </View>
 
@@ -112,7 +114,7 @@ const Messagespage = ({navigation}) => {
 
       <View style={styles.inputContainer}>
         {message === '' ? (
-          <Icon name="camera" size={30} color="gray" style={styles.inputIcon} />
+          <Text style={styles.inputIcon}><CameraIcon size={40} color="#007AFF" /></Text>
         ) : null}
         <TextInput
           style={styles.input}
@@ -123,7 +125,7 @@ const Messagespage = ({navigation}) => {
         />
         {message !== '' ? (
           <TouchableOpacity onPress={handleSend}>
-            <Icon name="send" size={30} color="blue" style={styles.inputIcon} />
+            <Text style={styles.inputIcon}><SendIcon size={40} color="#007AFF" /></Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -223,6 +225,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     maxWidth: '80%',
   },
+
   backbtn:{
     marginLeft: 10,
     width: 40,
@@ -257,8 +260,8 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   inputIcon: {
-    marginRight: 20,
-    marginLeft: 20,
+    marginRight: 10,
+    marginLeft: 10,
   },
   input: {
     flex: 1,

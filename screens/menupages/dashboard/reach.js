@@ -2,6 +2,9 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image,
 import React, { useState,useRef  } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { BackButton } from '../../icons/back';
+import { ArrowDown } from '../../icons/arrowdown';
+
 const Reach = ({navigation}) => {
     const [timemodalinvisible, settimemodalinvisible] = useState(false);
     const slideAnimEdit = useRef(new Animated.Value(0)).current;
@@ -55,15 +58,15 @@ const Reach = ({navigation}) => {
         <View style={styles.container}>
             <View style={styles.group1}>
                 <TouchableOpacity style={styles.leftSection} onPress={() => navigation.goBack()}>             
-                    <View style={styles.arrowcontainer}  >
-                        <Icon name="arrow-back" size={30} color="white" style={styles.iconText} />
+                    <View style={styles.iconText}  >
+                        <BackButton size={30} color="white" style={styles.iconText} />
                     </View>
                     <Text style={styles.text}>Reach</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.group2}>
                     <TouchableOpacity style={styles.buttondetails} onPress={opentimeModal}>
-                        <Text style={styles.text}>{timerange} {<Icon name="arrow-down" size={20} color="white" style={styles.iconText} />}</Text>
+                        <Text style={styles.text}>{timerange} {<ArrowDown size={20} color="white" style={styles.iconText} />}</Text>
                     </TouchableOpacity>
                     <View style={styles.stats}>
                         <Text style={styles.statsText}>10 sep - 12 oct</Text>
@@ -186,7 +189,8 @@ const styles = StyleSheet.create({
         borderBottomColor: 'white',
     },
     iconText: {
-        marginRight: 12,
+        marginRight: 10,
+        marginLeft: -10,
     },
     leftSection: {
         flexDirection: 'row',

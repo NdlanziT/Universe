@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Ionicons'; 
+import { BackButton } from '../icons/back';
 
 const Inbox = ({navigation}) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -43,7 +44,7 @@ const Inbox = ({navigation}) => {
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerContainer} onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-back" size={30} color="white" />
+                    <BackButton size={30} color="white" />
                     <Text style={styles.username}>Inbox</Text>
                 </TouchableOpacity>
             </View>

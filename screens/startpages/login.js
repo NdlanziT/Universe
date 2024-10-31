@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet,Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet,Image, Alert,KeyboardAvoidingView,Platform } from 'react-native';
 
 import { auth } from '../../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -28,7 +28,9 @@ const Login = ({ navigation }) => {
 
 
   return (
-    <View style={styles.container}>
+    <View
+    style={styles.container} // You can adjust this value to fine-tune the offset
+  >
       <Text style={styles.header}>Log in to Universe!</Text>
 
       {/* Google Login Button */}
@@ -47,6 +49,7 @@ const Login = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Username or Email"
+        keyboardType='email-address'
         placeholderTextColor="#d9d9d9"
         value={email}
         onChangeText={setEmail}

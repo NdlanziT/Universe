@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+
+import { BackButton } from '../icons/back';
 
 const FullScreenImagePage = () => {
   const goBack = () => {
@@ -16,7 +17,7 @@ const FullScreenImagePage = () => {
       />
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color="white" />
+            <BackButton size={30} color="white" />
           <Text style={styles.usernameText}>Username</Text>
         </TouchableOpacity>
       </View>

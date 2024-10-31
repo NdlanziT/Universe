@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
     StyleSheet,
     Text,
@@ -12,17 +12,36 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { db, storage,auth } from "../../../firebase";
-import { doc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, setDoc,updateDoc,getDoc } from 'firebase/firestore';
+import { ref, uploadBytes } from "firebase/storage";
 
-const AddPost = ({ navigation }) => {
+import { BackButton } from "../../icons/back";
+import { CameraIcon } from "../../icons/camera";
+import { UserInfoIcon } from "../../icons/userinfo";
+import { Undo } from "../../icons/undo";
+
+const AddPost = ({ navigation,route }) => {
+    const {postype,editcategory,editprivacy,editcontent,editpic,editbackgroundcolor,postid,setRefreshKey} = route.params
     const user = auth.currentUser;
     const [content, setContent] = useState("");
-    const [category, setCategory] = useState("marketplace");
-    const [privacy, setPrivacy] = useState("public");
+    const [category, setCategory] = useState("market place");
+    const [privacy, setPrivacy] = useState("Public");
     const [image, setImage] = useState("");
-    const [backgroundColor, setBackgroundColor] = useState("blue");
+    const [backgroundColor, setBackgroundColor] = useState("black");
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (postype == "edit") {
+          setContent(editcontent || "");
+          setCategory(editcategory || "market place");
+          setPrivacy(editprivacy || "Public");
+          setImage(editpic || "");
+          setBackgroundColor(editbackgroundcolor || "black");
+          if (editpic){
+            setPosttype("image")
+          }
+        }
+      }, [posttype, editcategory, editprivacy, editcontent, editpic, editbackgroundcolor]);
 
     const [posttype,setPosttype] = useState("text");
 
@@ -33,14 +52,14 @@ const AddPost = ({ navigation }) => {
         let year = d.getFullYear();
         let hours = d.getHours();
         let minutes = d.getMinutes();
-      
-        // Pad single digit minutes and hours with leading zeros
+
+
         hours = hours < 10 ? `0${hours}` : hours;
         minutes = minutes < 10 ? `0${minutes}` : minutes;
         month = month < 10 ? `0${month}` : month;
         day = day < 10 ? `0${day}` : day;
       
-        return `${day}-${month}-${year} ${hours}:${minutes}`;
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
       };
 
     const togglecamera = ()=>{
@@ -76,84 +95,174 @@ const AddPost = ({ navigation }) => {
     };
 
     // Function to upload post and image to Firebase
-    const handleUploadPost = async (email,content,privacy,category,backgroundColor) => {
+    const handleUploadPost = async (email, content, privacy, category, backgroundColor, image) => {
         if (!content) {
             Alert.alert("Please enter some content for your post");
             return;
         }
+    
         setLoading(true);
     
         try {
-            let imagename;
-            let postid = `${email}_${category}_${Date.now()}`
+            let imagename = "";
+            const postid = `${email}_${privacy}_${Date.now()}`; // Generate unique post ID
     
-            if (image) {
+            // Handle image upload if provided
+            if (image) { // Ensure image is defined
                 const timestamp = Date.now();
-                imagename = `${email}_${timestamp}`
-                const response = await fetch(media.uri); // Fetch the image from the URI
-                const blob = await response.blob();  // Convert the image to a blob
-                const storageRef = ref(storage, `profilepictures/${imagename}`); // Create a reference to the storage location
-                await uploadBytes(storageRef, blob); // Upload the image blob
-                const imageUrl = await getDownloadURL(storageRef); // You can keep this for other purposes if needed
-            } else {
-                imagename = ""; // Set imagename to null if no media is selected
+                imagename = `${email}_${timestamp}`;
+    
+                // Fetch the image from the URI and handle fetch errors
+                const response = await fetch(image);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch image from the provided URI");
+                }
+    
+                const blob = await response.blob(); // Convert image to blob
+    
+                // Create reference to Firebase storage and upload blob
+                const storageRef = ref(storage, `postpictures/${imagename}`);
+                await uploadBytes(storageRef, blob);
             }
     
-            // Add the post to Firestore with media containing the image name
+            // Add the post to Firestore with the image name if present
             const userRef = doc(db, 'post', postid);
             await setDoc(userRef, {
                 content: content,
-                createdat: postdate(),
-                media: imagename, // Store the imageName as media, or null if no image
+                createdat: postdate(), // Use new Date() instead of postdate()
+                media: imagename, // Store the image name or an empty string if no image
                 owner: email,
                 privacy: privacy,
-                likes: [], 
-                comments: [],
-                categorie: category,
+                likes: [], // Initialize empty likes array
+                comments: [], // Initialize empty comments array
+                category: category, // Correct spelling from "categorie"
                 backgroundcolor: backgroundColor,
             });
 
-            addPostToUserArray(email,postid)
+            addPostNumber()
     
-            // Reset states after the post is successfully uploaded
+            // Reset form fields after successful post creation
             setContent("");
-            setCategory("marketplace");
-            setPrivacy("public");
-            setImage(null);
-            setBackgroundColor("blue");
+            setCategory("market place");
+            setPrivacy("Public");
+            setImage(null); // Ensure image is cleared
+            setBackgroundColor("black");
             setLoading(false);
-    
             navigation.goBack();
         } catch (error) {
+            console.error("Error uploading post:", error); // Log detailed error
             Alert.alert("Something went wrong. Please try again later.");
             setLoading(false);
         }
     };
-
-    const addPostToUserArray = async (email, postid) => {
+    const handleEditPost = async (email, content, privacy, category, backgroundColor, image, postid) => {
+        if (!content) {
+            Alert.alert("Please enter some content for your post");
+            return;
+        }
+    
+        setLoading(true);
+    
         try {
-            const userRef = doc(db, 'users', email);
-            
-            // Update the 'post' array by adding the new post data using arrayUnion
+            let imagename = "";
+    
+            // Handle image upload if provided
+            if (image) {
+                const timestamp = Date.now();
+                imagename = `${email}_${timestamp}`;
+    
+                // Fetch the image from the URI and handle fetch errors
+                const response = await fetch(image);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch image from the provided URI");
+                }
+    
+                const blob = await response.blob(); // Convert image to blob
+    
+                // Create reference to Firebase storage and upload blob
+                const storageRef = ref(storage, `postpictures/${imagename}`);
+                await uploadBytes(storageRef, blob);
+            }
+    
+            // Add the post to Firestore with the image name if present
+            const userRef = doc(db, 'post', postid);
             await updateDoc(userRef, {
-                post: arrayUnion(postid) // Append the new post to the 'posts' array
+                content: content,
+                createdat: postdate(), // Use current date
+                media: imagename, // Store the image name or an empty string if no image
+                owner: email,
+                privacy: privacy,
+                category: category, // Correct spelling from "categorie"
+                backgroundcolor: backgroundColor,
             });
     
-            console.log('Post added successfully to user posts array!');
+            // Reset form fields after successful post creation
+            setContent("");
+            setCategory("market place");
+            setPrivacy("Public");
+            setImage(null);
+            setBackgroundColor("black");
+            setLoading(false);
+            setRefreshKey(oldKey => oldKey + 1)
+            navigation.goBack();
         } catch (error) {
-            console.error('Error adding post to user posts array: ', error);
+            console.error("Error uploading post:", error); // Log detailed error
+            Alert.alert("Something went wrong. Please try again later.");
+            setLoading(false);
         }
     };
+    
+    
+    const addPostNumber = async () => {
+        try {
+            const taskRef = doc(db, 'users', user.email);
+            
+            // Get the current value of 'post'
+            const docSnap = await getDoc(taskRef);
+            
+            if (docSnap.exists()) {
+                const currentPostNumber = docSnap.data().post || 0; // Default to 0 if 'post' is undefined
+                
+                // Increment the post number
+                await updateDoc(taskRef, {
+                    post: currentPostNumber + 1, // Increment by 1
+                });
+    
+                Alert.alert('Task Updated', 'Your post number was successfully updated.');
+                navigation.navigate('Home');
+            } else {
+                Alert.alert('Error', 'User document does not exist.');
+            }
+        } catch (error) {
+            console.error('Error updating document: ', error);
+            Alert.alert('Error', 'There was a problem updating the task.');
+        }
+    };
+    
+      
 
     return (
         <View style={styles.container}>
             <View style={styles.topBar}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={30} color="white" />
+                    <BackButton size={30} color="white" />
                 </TouchableOpacity>
-                <Text style={styles.title}>new post</Text>
-                <TouchableOpacity onPress={()=>{handleUploadPost(user.email,content,privacy,category,backgroundColor)}}>
-                    <Text style={styles.postButton}>post</Text>
+                {(postype == "new")?((
+                <Text style={styles.title}>new post</Text>)):(
+                <Text style={styles.title}>edit post</Text>
+                )}
+                <TouchableOpacity onPress={() => {
+                    if (postype === "new") {
+                        handleUploadPost(user.email, content, privacy, category, backgroundColor, image);
+                    } else if (postype === "edit") {
+                        handleEditPost(user.email, content, privacy, category, backgroundColor, image, postid);
+                    }
+                }}>
+                        {loading ? (
+                            <ActivityIndicator size="small" color="#4b4bff" />
+                        ) : (
+                            <Text style={styles.postButton}>{postype== "new" ? "Post" : "update"}</Text>
+                        )}
                 </TouchableOpacity>
             </View>
 
@@ -162,14 +271,14 @@ const AddPost = ({ navigation }) => {
             <View style={styles.dropdownArea}>
                 <TouchableOpacity
                     style={styles.dropdown}
-                    onPress={() => navigation.navigate("Categorise", { setCategory })}
+                    onPress={() => navigation.navigate("Categorise", { setCategory,category })}
                 >
                     <Text style={styles.dropdownText}>categorise as: {category}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.dropdown}
-                    onPress={() => navigation.navigate("PostPrivacy", { setPrivacy })}
+                    onPress={() => navigation.navigate("PostPrivacy", { setPrivacy,privacy })}
                 >
                     <Text style={styles.dropdownText}>privacy: {privacy}</Text>
                 </TouchableOpacity>
@@ -188,8 +297,7 @@ const AddPost = ({ navigation }) => {
                 </View>
             )}
 
-            {posttype == "photo" && (
-                    image && (
+            {image && (
                     <View style={styles.imagePreview}>
                         <View style={styles.detailcontainer}>
                             <Text style={styles.detaillabel}>write caption</Text>
@@ -201,12 +309,7 @@ const AddPost = ({ navigation }) => {
                             />
                         </View>
                         <Image source={{ uri: image }} style={styles.image} />
-                        <TouchableOpacity onPress={removepicture}>
-                            <Text style={styles.detailremove}>remove picture</Text>
-                            <Text style={styles.detailremove}>{image.length}</Text>
-                        </TouchableOpacity>
                     </View>
-                    )
               )}
 
             {posttype == "text" && (
@@ -217,6 +320,7 @@ const AddPost = ({ navigation }) => {
                         contentContainerStyle={styles.colorScroll}
                     >
                         {[
+                            "black",
                             "blue",
                             "green",
                             "red",
@@ -242,17 +346,17 @@ const AddPost = ({ navigation }) => {
             {posttype  && (
             <View style={styles.iconRow}>
             <TouchableOpacity onPress={togglecamera}>
-                <Ionicons name="camera" size={30} color="#4b4bff" />
+                <CameraIcon size={35} color="#007AFF" />
             </TouchableOpacity>
-            <TouchableOpacity >
-                <Ionicons name="at" size={30} color="white" />
+            <TouchableOpacity onPress={removepicture}>
+                <Undo size={30} color="#007AFF" />
             </TouchableOpacity>
         </View>
             )}
 
 
 
-            {loading && <ActivityIndicator size="large" color="#4b4bff" />}
+            
         </View>
     );
 };

@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-nativ
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { CloseButton } from '../../icons/close';
+
 const AddLink = ({navigation}) => {
     const [username, setUsername] = useState('');
 
@@ -10,7 +12,7 @@ const AddLink = ({navigation}) => {
             <View style={styles.group1}>
                 <View style={styles.leftSection}>             
                     <TouchableOpacity style={styles.arrowcontainer} onPress={() => navigation.goBack()}>
-                        <Icon name="close" size={30} color="white" style={styles.iconText} />
+                        <CloseButton size={30} color="white" style={styles.iconText} />
                     </TouchableOpacity>
                     <Text style={styles.text}>Add new link</Text>
                 </View>
