@@ -51,8 +51,8 @@ import FullScreenImagePage from './userpages/profileimage';
 import AddPost from './mainpages/components/addpost';
 import Categorise from './mainpages/components/categorise';
 import PostPrivacy from './mainpages/components/postprivacy';
-
-
+import Journal from './mainpages/components/journal';
+import Library from './mainpages/components/journallibrary';
 
 
 
@@ -216,6 +216,14 @@ const Layout = () => {
             name='PostPrivacy'
             component={PostPrivacy}
             options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name='Journal'
+            component={Journal}
+            options={{ headerTitleAlign: 'center', headerShown: false }}        />
+        <Stack.Screen 
+            name='Library'
+            component={Library}
+            options={{ headerTitleAlign: 'center', headerShown: false }}        /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
