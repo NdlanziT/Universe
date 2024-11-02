@@ -825,13 +825,6 @@ const closecommentModal = () => {
       <View style={styles.topbar}>
         <Text style={styles.pageTitle}>Market Place</Text>
       </View>
-      <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search content"
-                        placeholderTextColor="#888"
-                        value={search}
-                        onChangeText={setSearch}
-      />
       {loading ? (
               <Animated.View style={{ ...styles.loadingContainer, opacity: fadeAnim }}>
               <View style={styles.usernameplaceholder}>
@@ -1102,10 +1095,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
-    padding: 10,
   },
   topbar: {
     alignContent: 'center',
+    justifyContent:"center",
     marginTop: 25,
     height: 50,
     marginBottom: 10,

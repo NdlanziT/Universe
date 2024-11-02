@@ -40,6 +40,8 @@ import { EditIcon } from '../icons/edit';
 import { RemovingIcon } from '../icons/remove';
 import { BookmarkRemove } from '../icons/bookmarkremove';
 import { AddFollower } from '../icons/addfollower';
+import { FavouritesavedIcon } from '../icons/favsaved';
+import { ForwardIcon } from '../icons/foward';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -82,6 +84,8 @@ const Home = ({ navigation }) => {
   const [loadingcomment,setloadingcomment] = useState(false);
   const [currentcommentid,setCurrentcommentid] = useState("");
   const [currentpostpic,setCurrentpostpic] = useState('');
+
+  const [suggestedaccount,setSuggestedAccount] = useState([])
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -270,6 +274,64 @@ const closeImageModal = () => {
   setImageModalVisible(false);
   setCurrentpostpic('');
 };
+
+const discover = async (followers, myEmail) => {
+  const usersCollection = collection(db, 'users'); // Reference to 'users' collection
+
+  // Combine followers and the current user's email to exclude them
+  const excludeList = [...followers, myEmail];
+
+  // Check if excludeList is under 10 elements (due to Firestore's 'not-in' limit)
+  if (excludeList.length > 10) {
+      console.error("Cannot use 'not-in' query with more than 10 elements.");
+      setLoading(false);
+      return;
+  }
+
+  // Query to fetch users excluding those in the exclude list, limited to 10
+  const usersQuery = query(usersCollection, where("email", "not-in", excludeList), limit(10));
+
+  try {
+      const querySnapshot = await getDocs(usersQuery); // Execute the query
+      const profilePicturePromises = querySnapshot.docs.map(async (doc) => {
+          const userData = { id: doc.id, ...doc.data() }; // Get user data
+
+          // Fetch the profile picture URL for the user
+          userData.profilepic = await fetchProfilePictureURL(userData.profilepicture); 
+          userData.followstate = true; //
+          return userData;
+      });
+
+      // Wait for all profile picture fetches to complete and filter out null values
+      const usersWithPictures = (await Promise.all(profilePicturePromises)).filter(user => user !== null);
+      setSuggestedAccount(usersWithPictures); // Set the state with users and their profile pictures
+  } catch (error) {
+      console.error('Error fetching users:', error);
+  } finally {
+      setLoading(false); 
+  }
+};
+const handleuserfollow = async (userEmail)=>{
+  // If the user is not followed, add them to both 'following' and 'followers'
+  await addValueToSaved(myemail, 'following', userEmail); 
+  await addValueToSaved(userEmail, 'followers', myemail);
+  setFollowing((prev) => [...prev, userEmail]);
+  setSuggestedAccount(prevUsers =>
+    prevUsers.map(user =>
+        user.id === userEmail ? { ...user, followstate: false } : user
+    )
+);
+}
+const handleuserunfollow = async (userEmail)=>{
+  await removeValueFromSaved(myemail, 'following', userEmail);  // Remove userEmail from myemail's following list
+  await removeValueFromSaved(userEmail, 'followers', myemail);
+  setFollowing((prev) => prev.filter((email) => email !== userEmail)); 
+  setSuggestedAccount(prevUsers =>
+    prevUsers.map(user =>
+        user.id === userEmail ? { ...user, followstate: true } : user
+    )
+);
+}
 
 
 
@@ -460,7 +522,65 @@ const closeImageModal = () => {
       scrollViewRef.current.scrollTo({ y: position, animated: true });
     };
 
-    async function fetchFollowingsPosts(currentUserId,myfollowing) {
+async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
+  try {
+    const postsCollectionRef = collection(db, "post");
+    
+    // Create a query to fetch only one post from the collection
+    const postsQuery = query(postsCollectionRef, limit(1));
+    const querySnapshot = await getDocs(postsQuery);
+
+    // Process the single post asynchronously
+    const posts = await Promise.all(
+      querySnapshot.docs.map(async (doc) => {
+        const postData = doc.data();
+        postData.id = doc.id;
+
+        // Fetch user information for the post owner
+        const user = await fetchUserById(postData.owner);
+
+        // Ensure the post owner is in the following list
+        if (user && myfollowing.includes(user.email)) {
+          // Fetch media URL
+          postData.media = await fetchPostPictureURL(postData.media);
+
+          // Check if the post is liked by the current user
+          postData.liked = postData.likes && postData.likes.includes(currentUserId);
+
+          // Add owner info and other details to the post
+          postData.ownerInfo = {
+            name: user.name,
+            username: user.username,
+            bio: user.bio,
+            followers: user.followers,
+            following: user.following,
+            post: user.post,
+            email: user.email,
+            profilepic: user.profilepicture,
+          };
+
+          // Determine if the post belongs to the current user
+          postData.mine = user.email === currentUserId;
+          // Check if the current user follows this user
+          postData.followsuserstate = true;
+
+          return postData;
+        }
+      })
+    );
+
+    // Filter out undefined results if the post does not belong to a following user
+    const filteredPosts = posts.filter(Boolean);
+
+    // Append the single fetched post to the existing posts array
+    setPost((prevPosts) => [...prevPosts, ...filteredPosts]);
+  } catch (error) {
+    console.error("Error fetching post:", error);
+  }
+}
+
+
+    async function fetchFollowingsPosts(currentUserId, myfollowing = []) {
       try {
         const postsCollectionRef = collection(db, "post");
         const querySnapshot = await getDocs(postsCollectionRef);
@@ -474,9 +594,8 @@ const closeImageModal = () => {
             // Fetch user information for the post owner
             const user = await fetchUserById(postData.owner);
     
-            // Fetch media URL (replace 'postData.media' if argument is needed)
+            // Fetch media URL
             postData.media = await fetchPostPictureURL(postData.media);
-            postData.followsuserstate = false
     
             // Check if the post is liked by the current user
             postData.liked = postData.likes && postData.likes.includes(currentUserId);
@@ -494,19 +613,19 @@ const closeImageModal = () => {
               };
               // Determine if the post belongs to the current user
               postData.mine = user.email === currentUserId;
-              postData.followsuserstate = myfollowing.includes(user.email)
+              // Check if the current user follows this user
+              postData.followsuserstate = Array.isArray(myfollowing) && myfollowing.includes(user.email);
             }
     
             return postData;
           })
         );
-    
-        // Update state with the fetched posts
         setPost(posts);
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
     }
+    
     
     
   const fetchProfilePictureURL = async (fileName) => {
@@ -639,7 +758,9 @@ const closeImageModal = () => {
   const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite)=>{
     navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername: username})
 }
-
+const gotosuggestedaccount = ()=>{
+  navigation.navigate("Discover",{setFollowing,following: following,email : currentUserId})
+}
   const timeDifference = useCallback((dateString) => {
     const inputDate = new Date(dateString);
     const currentDate = new Date();
@@ -769,22 +890,61 @@ const closecommentModal = () => {
     fetchCurrentUserData();
   }, [currentUserId]);
   
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //       try {
+  //         await fetchFollowingsPosts(currentUserId,following);
+  //       } catch (error) {
+  //         console.error("Error fetching followings posts:", error);
+  //       } finally {
+  //         setLoading(false); 
+
+  //       }
+  //   };
+  //   const fecthseconddata = async () => {
+  //     try {
+  //       await fetchSecondFollowingPost(currentUserId,following);
+  //       await discover(following,currentUserId)
+  //     } catch (error) {
+  //       console.error("Error fetching 2nd posts:", error);
+  //     } finally {
+  //     }
+  //   };
+  //   fetchData();
+  //   if(following.length > 0){
+  //     fecthseconddata()
+  //   }
+  // }, []); 
+
   useEffect(() => {
-    console.log(following)
     const fetchData = async () => {
-        try {
-          await fetchFollowingsPosts(currentUserId,following);
-        } catch (error) {
-          console.error("Error fetching followings posts:", error);
-        } finally {
-          setLoading(false); // Set loading to false once fetching completes
-
-        }
+      try {
+        await fetchFollowingsPosts(currentUserId, following);
+      } catch (error) {
+        console.error("Error fetching followings posts:", error);
+      } finally {
+        setLoading(false);
+      }
     };
+  
+    const fetchSecondData = async () => {
+      try {
+        await fetchSecondFollowingPost(currentUserId, following);
+        await discover(following, currentUserId);
+      } catch (error) {
+        console.error("Error fetching 2nd posts:", error);
+      }
+    };
+  
+    // Only fetch data if `currentUserId` and `following` are defined
+    
     fetchData();
-  }, []); // Add 'following' dependency to re-fetch when the following list changes
-
-
+    if (currentUserId && following.length > 0) {
+  
+      // Run the second fetch function if there are any followings
+      fetchSecondData();
+    }
+  }, [currentUserId, following]);
   
 
 
@@ -855,14 +1015,44 @@ const closecommentModal = () => {
               <View style={styles.postPlaceholder} />
             </Animated.View>
             ) : (
-                // Show the ScrollView with posts when loading is false
                 <ScrollView style={styles.ScrollViewcontainer}>
+                    <View style={styles.usercontainer}>
+                      <TouchableOpacity style={styles.seeallcontainer} onPress={()=>{gotosuggestedaccount()}}>
+                        <Text style={styles.seealltext}>See All</Text>
+                        <ForwardIcon color='white' size={24} />
+                      </TouchableOpacity>
+                      <ScrollView 
+                        horizontal 
+                        showsHorizontalScrollIndicator={false} 
+                        contentContainerStyle={{ flexDirection: 'row' }}
+                        style={styles.userdetailscontainer}
+                      >
+                        
+                    {suggestedaccount.map((account,index) => (
+                        <TouchableOpacity key={index} style={styles.userDetails} onPress={()=>{gotoprofile(account.username,account.profilepic,account.name,account.email,account.bio,account.post,account.followers,account.following,following,currentUserId,saved,favorite)}}
+                        activeOpacity={1}
+                        >
+                          <Image source={{uri : account.profilepic}} style={styles.userpic}/>
+                          <Text style={styles.username}>{account.username}</Text>
+                          {account.followstate ?(
+                          <TouchableOpacity style={styles.userfollowbutton} onPress={()=>{handleuserfollow(account.email)}}>
+                            <Text style={styles.userfollowbuttontext}>Follow</Text>
+                          </TouchableOpacity>):
+                          (
+                            <TouchableOpacity style={styles.userunfollowbutton} onPress={()=>{handleuserunfollow(account.email)}}>
+                              <Text style={styles.userfollowbuttontext}>Unfollow</Text>
+                            </TouchableOpacity>
+                          ) }
+                        </TouchableOpacity>
+                    ))}
+                      </ScrollView>
+                    </View>
                     {post.map((post, index) => (
                         <View key={index} style={styles.postContainer}>
                             <View style={styles.postHeader}>
                                 <Image source={{uri :post.ownerInfo?.profilepic}} style={styles.avatar} />
                                 <TouchableOpacity style={styles.postInfo} onPress={()=>{gotoprofile(post.ownerInfo?.username,post.ownerInfo?.profilepic,post.ownerInfo?.name,post.ownerInfo?.email,post.ownerInfo?.bio,post.ownerInfo?.post,post.ownerInfo?.followers,post.ownerInfo?.following,following,currentUserId,saved,favorite)}}>
-                                    <Text style={styles.username}>{post.ownerInfo?.username}</Text>
+                                    <Text style={styles.username}>{post.ownerInfo?.username} </Text>
                                     <Text style={styles.time}>{timeDifference(post.createdat)} ago</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.elipsecontainer} onPress={() => {toogleoption(saved,favorite,post.ownerInfo?.email,following,post.id)}}>
@@ -899,22 +1089,20 @@ const closecommentModal = () => {
                                     </TouchableOpacity>
                                 </View>
                             </View>
+                          <View style={styles.likedcontaineroption}>
+                            <TouchableOpacity>
+                            <Text style={styles.username}>Users who liked</Text>
+                            </TouchableOpacity>
                             {!post.mine && (
-                            <View style={styles.buttoncontainerfollow}>
-                              <TouchableOpacity style={styles.buttonsendmessagebtn}>
+                            <TouchableOpacity style={styles.buttonsendmessagebtn}>
                                 <Text style={styles.username}>Send message</Text>
-                              </TouchableOpacity>
-                              {!post.followsuserstate && (
-                              <TouchableOpacity style={styles.buttonsendmessagebtn} onPress={()=>{handleaddfollowings(post.ownerInfo?.email,currentUserId,false)}}>
-                                <Text style={styles.username}>Follow</Text>
-                              </TouchableOpacity>)}
-                            </View>
-                          )}
+                            </TouchableOpacity>
+                            )}
+                          </View>
                         </View>
                         
                         
-                    ))}
-                    
+                    ))}                    
                     { optionmodalVisible && (<Modal
                               transparent={true}
                               animationType="none"
@@ -1100,6 +1288,7 @@ const closecommentModal = () => {
             
 
     </KeyboardAvoidingView>
+
   );
 };
 
@@ -1109,7 +1298,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
-    padding: 10,
   },
   topbar: {
     marginTop: 25,
@@ -1487,7 +1675,6 @@ buttonsendmessagebtn:{
   padding: 10,
   backgroundColor: '#007AFF',
   borderRadius: 10,
-  marginTop:8,
   justifyContent: 'center',
   alignContent: 'center',
 
@@ -1508,4 +1695,81 @@ imagebackButton: {
   left: 10,
   zIndex: 1,
 },
+likedcontaineroption:{
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginTop: 10,
+},
+
+usercontainer: {
+  flexDirection: 'column',
+},
+seeallcontainer: {
+  flexDirection: "row",
+  backgroundColor: 'black',
+  justifyContent: 'space-between',
+  padding: 10,// Adjust thickness as needed
+  borderTopWidth: 2,
+  borderBottomWidth: 2, // Adjust thickness as needed
+  borderColor: '#1e1e1e',
+},
+seealltext:{
+  color: 'gray',
+  fontWeight: 'bold',
+  fontSize: 18,
+},
+userdetailscontainer: {
+  backgroundColor: 'black',
+  marginBottom: 10,
+  marginTop: 10,
+  borderBottomWidth: 2, 
+  marginLeft:10,
+},
+userDetails: {
+  alignItems: 'center',
+  marginRight: 10,
+  padding: 10,
+  borderRadius: 10,
+  borderWidth:1,
+  borderColor: '#1e1e1e',
+},
+userpic:{
+  width: 200,
+  height: 220,
+  borderRadius: 5,
+  marginBottom: 10,
+},
+userfollowbutton:{
+  backgroundColor: '#007AFF',
+  width:"100%",
+  padding: 10,
+  borderRadius: 5,
+  marginTop: 10,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+userunfollowbutton:{
+  backgroundColor: '#1e1e1e',
+  width:"100%",
+  padding: 10,
+  borderRadius: 5,
+  marginTop: 10,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+userViewbutton:{
+  backgroundColor: '#1e1e1e',
+  width:"100%",
+  padding: 10,
+  borderRadius: 5,
+  marginTop: 10,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+userfollowbuttontext:
+{
+  color: 'white',
+  fontWeight: 'bold',
+}
 });

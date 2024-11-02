@@ -368,13 +368,6 @@ const handleUnfollow = async (userEmail,myEmail) =>{
     await removeValueFromArray(myEmail, "following", userEmail);
     setFollowstate(false);
 }; 
-const handleoptionfollw = async (myemail,useremail,state) =>{
-  if(state){
-    handleUnfollow(useremail,myemail);
-  }else{
-    handleFollow(useremail,myemail);
-  }
-}
 async function fetchPosts(email) {
   try {
     // Create a query that fetches posts with owner matching the email

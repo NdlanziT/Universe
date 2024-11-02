@@ -37,7 +37,6 @@ export default function Tab() {
               <View style={{ position: 'relative' }}>
                 <UserProfileIcon color={color} size={30} />
                 <View style={styles.badge}>
-                  {/* Badge content can be added here */}
                 </View>
               </View>
             );
@@ -47,10 +46,11 @@ export default function Tab() {
           backgroundColor: 'black', // Set tab bar background color
           height: 69, // Add padding to the bottom to show the badge
         },
-        tabBarActiveTintColor: '#007AFF', // Active icon color (blue)
-        tabBarInactiveTintColor: 'white', // Inactive icon color (white)
+        tabBarActiveTintColor: 'white', // Active icon color (blue)
+        tabBarInactiveTintColor: '#737373', // Inactive icon color (white)
       })}
     >
+      
       <Tabpage.Screen name="Home" component={Home} />
       <Tabpage.Screen name="Market" component={Marketplace} />
       <Tabpage.Screen name="Tutoring" component={Tutoringservices} />

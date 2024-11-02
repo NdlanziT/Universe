@@ -236,6 +236,7 @@ const Userfollowers = ({navigation,route}) => {
                                 />
                                 <View>
                                     <Text style={styles.buttonText}>{user.username}</Text>
+                                    <Text style={styles.follow}>{user.name}</Text>
                                 </View>
                                 {user.email !== myemail?(
                                     <TouchableOpacity 
@@ -279,6 +280,7 @@ const Userfollowers = ({navigation,route}) => {
                                     />
                                     <View>
                                         <Text style={styles.buttonText}>{user.username}</Text>
+                                        <Text style={styles.follow}>{user.name}</Text>
                                     </View>
                                     {user.email !== myemail?(
                                     <TouchableOpacity 
@@ -321,6 +323,7 @@ const Userfollowers = ({navigation,route}) => {
                                                 />
                                                 <View>
                                                     <Text style={styles.buttonText}>{user.username}</Text>
+                                                    <Text style={styles.follow}>{user.name}</Text>
                                                 </View>
                                                 <TouchableOpacity style={user.followstate ? styles.remove : styles.followbtn} onPress={unfollows}>
                                                     <Text style={styles.buttonText}>{user.followstate ?  "Unfollow" : "Follow"}</Text>
@@ -373,6 +376,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         height: 104,
+        width: '100%' 
     },
     buttonFollow: {
         flex: 1,
@@ -412,6 +416,12 @@ const styles = StyleSheet.create({
     },
     scrollcontainer: {
         padding: 15,
+    },
+    follow: {
+        marginTop: 5,
+        fontSize: 14,
+        fontWeight: "600", // Size for links
+        color: '#0095F6',
     },
     searchInput: {
         height: 60,

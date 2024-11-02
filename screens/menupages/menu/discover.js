@@ -9,7 +9,7 @@ import { BackButton } from '../../icons/back';
 
 const Discover = ({navigation,route}) => {
     const fadeAnim = useRef(new Animated.Value(1)).current;
-    const [search, setSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading,setLoading] = useState(true)
     const [users,setUsers] = useState([])
 
@@ -75,35 +75,46 @@ const Discover = ({navigation,route}) => {
     };
 
 
+
     const discover = async (followers, myEmail) => {
         setLoading(true); // Set loading to true while fetching users
         const usersCollection = collection(db, 'users'); // Reference to 'users' collection
-    
-        // Combine followers and the current user's email to exclude them
+        
         const excludeList = [...followers, myEmail];
     
-        // Check if excludeList is under 10 elements (due to Firestore's 'not-in' limit)
+        // Check for the 'not-in' limit for excludeList
         if (excludeList.length > 10) {
             console.error("Cannot use 'not-in' query with more than 10 elements.");
             setLoading(false);
             return;
         }
     
-        // Query to fetch users excluding those in the exclude list, limited to 10
-        const usersQuery = query(usersCollection, where("email", "not-in", excludeList), limit(10));
+        // Create base query to exclude specific users
+        let usersQuery = query(usersCollection, where("email", "not-in", excludeList), limit(10));
+    
+        // If search term exists, filter by 'name' or 'username' based on search term
+        if (searchTerm) {
+            usersQuery = query(
+                usersCollection,
+                where("email", "not-in", excludeList),
+                orderBy("name"),
+                startAt(searchTerm),
+                endAt(searchTerm + "\uf8ff"),
+                limit(10)
+            );
+        }
     
         try {
             const querySnapshot = await getDocs(usersQuery); // Execute the query
             const profilePicturePromises = querySnapshot.docs.map(async (doc) => {
-                const userData = { id: doc.id, ...doc.data() }; // Get user data
+                const userData = { id: doc.id, ...doc.data() };
     
                 // Fetch the profile picture URL for the user
                 userData.profilepic = await fetchProfilePictureURL(userData.profilepicture); 
-                userData.followstate = true; //
+                userData.followstate = true;
                 return userData;
             });
     
-            // Wait for all profile picture fetches to complete and filter out null values
             const usersWithPictures = (await Promise.all(profilePicturePromises)).filter(user => user !== null);
             setUsers(usersWithPictures); // Set the state with users and their profile pictures
         } catch (error) {
@@ -115,7 +126,7 @@ const Discover = ({navigation,route}) => {
     
     const fetchProfilePictureURL = async (fileName) => {
         try {
-          if (fileName == null){
+          if (fileName == null || fileName == '') {
             const storageRef = ref(storage, `profilepictures/download.png`);
             const url = await getDownloadURL(storageRef);
             return url;
@@ -174,8 +185,8 @@ const Discover = ({navigation,route}) => {
                             style={styles.searchInput}
                             placeholder="Search followers"
                             placeholderTextColor="#888"
-                            value={search}
-                            onChangeText={setSearch}
+                            value={searchTerm}
+                            onChangeText={setSearchTerm}
                         />
                         {loading ?(
                             <Animated.View style={{ ...styles.loadingContainer, opacity: fadeAnim }}>

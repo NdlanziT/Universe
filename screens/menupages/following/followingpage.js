@@ -298,7 +298,7 @@ const Followingpage = ({navigation,route}) => {
                             />
                             <View>
                                 <Text style={styles.buttonText}>{user.username}</Text>
-                                <Text style={styles.follow}>Follow</Text>
+                                <Text style={styles.follow}>{user.name}</Text>
                             </View>
                             {user.followstate ? (
                             <TouchableOpacity style={styles.remove} onPress={()=>{handleremove(user.id,email)}}>

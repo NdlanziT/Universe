@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState,useCallback } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons'; // Change to Ionicons
 import { TouchableOpacity } from 'react-native';
 import { auth,db,storage } from '../../firebase';
-import { collection, getDocs,doc, getDoc, query, where,updateDoc,arrayUnion,arrayRemove,deleteDoc } from "firebase/firestore";
+import { collection, getDocs,doc, getDoc, query, where,updateDoc,arrayUnion,arrayRemove,deleteDoc,setDoc } from "firebase/firestore";
 import { ref, getDownloadURL } from "firebase/storage";
 
 import { MenuIcon } from '../icons/menu';
@@ -675,7 +675,7 @@ const slideUpStylecomment = {
 
     const fetchProfilePictureURL = async (fileName) => {
       try {
-        if (fileName == null){
+        if (fileName == null || fileName.length ==''){
           const storageRef = ref(storage, `profilepictures/download.png`);
           const url = await getDownloadURL(storageRef);
           return url;
