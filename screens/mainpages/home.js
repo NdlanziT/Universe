@@ -60,6 +60,7 @@ const Home = ({ navigation }) => {
 
   const [myemail,setMyEmail] = useState('');
   const [following,setFollowing] = useState([]);
+  const [chat,setChat] = useState([])
   const [users,setUsers] = useState([]);
   const [myusername,setMyUsername] = useState('');
   const [post,setPost] = useState([])
@@ -332,16 +333,6 @@ const handleuserunfollow = async (userEmail)=>{
     )
 );
 }
-
-
-
-  const handleSend = () => {
-    // Handle sending the message
-    console.log('Message sent:', message);
-    setMessage('');
-  };
-
-
   const replytouser = (username,email)=>{
     setReplyto(username)
   }
@@ -624,8 +615,7 @@ async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
-    }
-    
+    }    
     
     
   const fetchProfilePictureURL = async (fileName) => {
@@ -687,6 +677,7 @@ async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
           following: userData.following,
           saved: userData.saved,
           favourites: userData.favourites,
+          chat : userData.chat,
         };
       } else {
         throw new Error("User not found");
@@ -700,6 +691,7 @@ async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
     try {
       const userData = await fetchUserById(currentUserId);
       if (userData) {
+        setChat(userData.chat);
         setMyEmail(userData.email);
         setFollowing(userData.following);
         setUsers([userData]);
@@ -880,7 +872,10 @@ const closecommentModal = () => {
 };
 
   const gotoMessage = () => {
-    navigation.navigate('Inbox')
+    navigation.navigate('Inbox',{myemail,chat,following,saved,favorite})
+  };
+  const gotosearch = () => {
+    navigation.navigate('Search');
   };
 
   const gotoAddPost = () => {
@@ -986,7 +981,7 @@ const closecommentModal = () => {
           <TouchableOpacity style={styles.messageIconContainer} onPress={gotoAddPost}>
             <AddIcon size={30} color="white" style={styles.icon} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.messageIconContainer}>
+          <TouchableOpacity style={styles.messageIconContainer}onPress={gotosearch}>
             <SearchIcon size={34} color="white" style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.messageIconContainer} onPress={gotoMessage}>

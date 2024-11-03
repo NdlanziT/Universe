@@ -1,43 +1,192 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; 
 import { BackButton } from '../icons/back';
+import { db, storage } from '../../firebase';
+import { collection, query, getDocs, doc, getDoc, where,updateDoc,onSnapshot,deleteDoc,orderBy } from 'firebase/firestore';
+import { getDownloadURL, ref } from 'firebase/storage';
 
-const Inbox = ({navigation}) => {
+const Inbox = ({navigation,route}) => {
+    const { myemail,chat,following,saved,favorite } = route.params;
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedAccount, setSelectedAccount] = useState(null);
-    const [search, setSearch] = useState("");
+    const [accounts, setAccounts] = useState([]); 
+    const [currentaccount, setCurrentAccount] = useState('')
+    const [alreadyread,setAlreadyRead] = useState(false)
 
-    const accounts = [
-        { name: 'Lindorh Kuhle Msibi', message: 'Hello there motherfucker...', image: require('./download.jpg'), newMessages: 3 },
-        { name: 'Biggy5slimez', message: 'Hey, how’s it going?', image: require('./download.jpg'), newMessages: 0 },
-        { name: 'Aphile😍', message: 'What’s up!', image: require('./download.jpg'), newMessages: 1 },
-        { name: 'Instagram User', message: 'Long time no see!', image: require('./download.jpg'), newMessages: 0 },
-        { name: 'kharacter', message: 'See you later', image: require('./download.jpg'), newMessages: 2 },
-    ];
-
-    const suggestedAccounts = [
-        { name: 'User 1', realName: 'name 1', image: require('./download.jpg') },
-        { name: 'User 2', realName: 'name 2', image: require('./download.jpg') },
-        { name: 'User 3', realName: 'name 3', image: require('./download.jpg') },
-        { name: 'User 4', realName: 'name 4', image: require('./download.jpg') },
-    ];
-
-    const handleLongPress = (account) => {
-        setSelectedAccount(account);
-        setModalVisible(true);
+    const fetchChats = (ids, currentUser) => {
+        if (!ids || ids.length === 0) return;
+    
+        const chatsCollectionRef = collection(db, 'chats');
+        const chatsQuery = query(chatsCollectionRef, where('id', 'in', ids));
+    
+        // Set up a real-time listener with onSnapshot
+        const unsubscribe = onSnapshot(chatsQuery, async (querySnapshot) => {
+            const fetchedChats = await Promise.all(
+                querySnapshot.docs.map(async (doc) => {
+                    const chatsData = { id: doc.id, ...doc.data() };
+                    try {
+                        const userId = chatsData.members.find(email => email !== currentUser);
+                        const user = await fetchUserById(userId);
+                        if (user) {
+                            chatsData.ownerInfo = {
+                                ...user,
+                                profilepicture: await fetchProfilePictureURL(user.profilepicture),
+                                name: user.name,
+                                following: user.following,
+                                post: user.post,
+                                email: user.email,
+                                followers: user.followers,
+                            };
+                        }
+                    } catch (error) {
+                        console.warn(`Error fetching user data for chat ${doc.id}:`, error);
+                    }
+                    return chatsData;
+                })
+            );
+    
+            setAccounts(fetchedChats); // Update the state with new data
+        }, (error) => {
+            console.error('Error fetching chats:', error);
+        });
+    
+        // Return the unsubscribe function to clean up the listener when needed
+        return unsubscribe;
     };
-    const handleaccount =(account)=>{
-        navigation.navigate("Message", { account })
+    const fetchUserById = async (userId) => {
+        try {
+            const userDocRef = doc(db, "users", userId);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                return { id: userId, ...userDocSnap.data() };
+            } else {
+                throw new Error("User not found");
+            }
+        } catch (error) {
+            console.error("Error fetching user by id:", error);
+            return null;
+        }
+    };
+
+    const fetchProfilePictureURL = async (fileName) => {
+        try {
+            const storageRef = ref(storage, fileName ? `profilepictures/${fileName}` : `profilepictures/download.png`);
+            return await getDownloadURL(storageRef);
+        } catch (error) {
+            console.error('Error fetching profile picture:', error);
+            return null; // Return null if the profile picture is not found
+        }
+    };
+    const markChatAsUnread = async (chatId,state) => {
+        try {
+          const chatRef = doc(db, 'chats', chatId);
+          if (state){
+            await updateDoc(chatRef, {
+              read: false
+            });
+          }else{
+          await updateDoc(chatRef, {
+            read: true
+          })}
+      
+          console.log(`Chat ${chatId} marked as unread`);
+        } catch (error) {
+          console.error('Error updating chat read status:', error);
+        }
+      };
+      const deleteChat = async (chatId) => {
+        if (!chatId) {
+            console.error('Chat ID is required to delete a chat.');
+            return;
+        }
+    
+        try {
+            const chatDocRef = doc(db, 'chats', chatId);
+            await deleteDoc(chatDocRef);
+            console.log(`Chat with ID ${chatId} has been deleted.`);
+        } catch (error) {
+            console.error('Error deleting chat:', error);
+        }
+    };
+
+    // useEffect(() => {
+    //     if (chat && myemail) {
+    //         fetchChats(chat, myemail);
+    //     }
+    // }, [chat, myemail]);
+
+    useEffect(() => {
+        const unsubscribe = fetchChats(chat, myemail);
+    
+        return () => {
+            if (unsubscribe) unsubscribe(); // Cleanup listener on unmount
+        };
+    },[chat, myemail]);
+
+    const handleLongPress = (account,readedstate) => {
+        setModalVisible(true);
+        setCurrentAccount(account);
+        setAlreadyRead(readedstate);
+        
+    };
+    const handleaccount =(user_profilepiture,user_username,user_name,user_following,user_post,user_email,user_followers,messages_id,chatid,markread)=>{
+        navigation.navigate("Message", {user_profilepiture,user_username,user_name,user_following,user_post,user_email,user_followers,messages_id,following,myemail,saved,favorite,chatid })
+        if (markread !== myemail){
+            markChatAsUnread(chatid,false)
+        }
     }
-    const handlemarkasreaded =()=>{
-        Alert.alert("you mark as unread an account")
+    const handlemarkasreaded =(state)=>{
+        markChatAsUnread(currentaccount,state)
+        setModalVisible(false)
     }
-    const handledeletechats =()=>{
-        Alert.alert("you delete chats an account")
+    const handledeletechats =(chatid)=>{
+        Alert.alert(
+            "Delete chat",
+            `Are you sure you want to delete the chat?`,
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Confirm",
+                onPress: async () => {
+                  try {
+                    await deleteChat(chatid);
+                  } catch (error) {
+                    console.error("Error deleting post:", error);
+                  }finally{
+                    setModalVisible(false)
+                  }
+                },
+              },
+            ],
+            { cancelable: true }
+          );
     }
-    const handleblock =()=>{
-        navigation.navigate('Inbox');
+    const handleblock =(chatid)=>{
+        Alert.alert(
+            "Bloc",
+            `Are you sure you want to block this user?`,
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Confirm",
+                onPress: async () => {
+                  try {
+                    await deleteChat(chatid);
+                  } catch (error) {
+                    console.error("Error deleting chat:", error);
+                  }finally{
+                    setModalVisible(false)
+                  }
+                },
+              },
+            ],
+            { cancelable: true }
+          );
     }
 
     return (
@@ -45,53 +194,42 @@ const Inbox = ({navigation}) => {
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerContainer} onPress={() => navigation.goBack()}>
                     <BackButton size={30} color="white" />
-                    <Text style={styles.username}>Inbox</Text>
                 </TouchableOpacity>
+                <Text style={styles.username}>Inbox</Text>
             </View>
+            {accounts.length > 0 ?(
             <ScrollView style={styles.container}>
-                <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search chats"
-                            placeholderTextColor="#888"
-                            value={search}
-                            onChangeText={setSearch}
-                        />
                 {accounts.map((account, index) => (
                     <TouchableOpacity
                         key={index}
-                        onLongPress={() => handleLongPress(account)}
-                        onPress={()=>handleaccount(account)}
-                        style={styles.accountRow}
+                        onLongPress={() => {
+                            if (!account.read) {
+                                handleLongPress(account.id, true);
+                            }else{
+                                handleLongPress(account.id, false);
+                            }
+                        }}
+                            onPress={()=>handleaccount(account.ownerInfo.profilepicture,account.ownerInfo.username,account.ownerInfo.name,account.ownerInfo.following,account.ownerInfo.post,account.ownerInfo.email,account.ownerInfo.followers,account.messageid,account.id,account.lastmessageowner)}
+                            style={styles.accountRow}
                     >
-                        <Image source={account.image} style={styles.profilePic} />
+                        <Image source={{ uri: account.ownerInfo.profilepicture }} style={styles.profilePic} />
                         <View style={styles.textContainer}>
-                            <Text style={styles.name}>{account.name}</Text>
+                            <Text style={styles.name}>{account.ownerInfo.username}</Text>
                             <Text style={styles.message}>{account.message}</Text>
                         </View>
-                        {account.newMessages > 0 && (
+                        {!account.read && (
                             <View style={styles.notificationBadge}>
-                                <Text style={styles.notificationText}>{account.newMessages}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
                 ))}
-                <Text style={styles.suggestTitle}>Accounts to follow</Text>
-                {suggestedAccounts.map((account, index) => (
-                    <View key={index} style={styles.accountRow}>
-                        <Image source={account.image} style={styles.profilePic} />
-                        <View style={styles.textContainer}>
-                            <Text style={styles.name}>{account.name}</Text>
-                            <Text style={styles.realName}>{account.realName}</Text>
-                        </View>
-                        <TouchableOpacity style={styles.followButton}>
-                            <Text style={styles.followText}>Follow back</Text>
-                        </TouchableOpacity>
-                    </View>
-                ))}
             </ScrollView>
-
-            {/* Modal for options */}
-            {selectedAccount && (
+            ):(
+            <View style={styles.noAccountsContainer}>
+                <Text style={styles.noAccountsText}>No chats available</Text>
+            </View>
+            )}
+            {modalVisible && (
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -100,8 +238,12 @@ const Inbox = ({navigation}) => {
                 >
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            <Text style={styles.modalOption} onPress={handledeletechats}>Delete Chats</Text>
-                            <Text style={styles.modalOption} onPress={handlemarkasreaded}>Mark as Unread</Text>
+                            <Text style={styles.modalOption} onPress={()=>{handledeletechats()}}>Delete chats</Text>
+                            {alreadyread ? (
+                                <Text style={styles.modalOption} onPress={()=>{handlemarkasreaded(false)}}>Mark as read</Text>
+                            ):(
+                                <Text style={styles.modalOption} onPress={()=>{handlemarkasreaded(true)}}>Mark as unread</Text>
+                            )}
                             <Text style={styles.modalOption}onPress={handleblock}>Block</Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalClose}>
                                 <Text style={styles.modalCloseText}>Close</Text>
@@ -122,7 +264,6 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
         marginTop: 20,
         marginBottom: 30,
@@ -134,8 +275,17 @@ const styles = StyleSheet.create({
     username: {
         fontSize: 25,
         fontWeight: 'bold',
-        marginLeft: 10,
+        marginLeft: "35%",
         color: 'white',
+    },
+    noAccountsContainer:{
+        flex:1,
+        justifyContent:"center",
+        alignItems:"center",
+    },
+    noAccountsText:{
+        color:"white",
+        fontSize:20,
     },
     
     searchInput: {
@@ -171,8 +321,8 @@ const styles = StyleSheet.create({
     },
     notificationBadge: {
         backgroundColor: '#3498db', // Blue color for notification badge
-        width: 25,
-        height: 25,
+        width: 15,
+        height: 15,
         borderRadius: 12.5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -208,7 +358,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: '#28282B',
         padding: 20,
         borderRadius: 10,
         width: '80%',
@@ -223,6 +373,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginVertical: 10,
         textAlign: 'center',
+        color:"white"
     },
     modalClose: {
         marginTop: 15,
