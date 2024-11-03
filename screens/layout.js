@@ -53,6 +53,8 @@ import Categorise from './mainpages/components/categorise';
 import PostPrivacy from './mainpages/components/postprivacy';
 import Journal from './mainpages/components/journal';
 import Library from './mainpages/components/journallibrary';
+import ReportScreen from './mainpages/components/report';
+
 
 
 
@@ -224,6 +226,10 @@ const Layout = () => {
             name='Library'
             component={Library}
             options={{ headerTitleAlign: 'center', headerShown: false }}        /> 
+            <Stack.Screen 
+                name='Report'
+                component={ReportScreen}
+                options={{ headerTitleAlign: 'center', headerShown: false }}        /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
