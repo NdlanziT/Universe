@@ -905,62 +905,71 @@ const closecommentModal = () => {
                         
                     ))}
                     
-                    { optionmodalVisible && (<Modal
-                              transparent={true}
-                              animationType="none"
-                              visible={optionmodalVisible}
-                              onRequestClose={closeoption}
-                >
-                    <TouchableOpacity style={styles.modalBackground} onPress={closeoption}>
-                        <TouchableOpacity activeOpacity={1} style={styles.modalContainer}>
-                            <Animated.View style={[styles.modalContent, slideUpStyle]}>
-                                <TouchableOpacity style={styles.closeButton} onPress={closeoption}>
-                                    <CloseButton size={30} color={"white"}/>
-                                </TouchableOpacity>
-                                <View style={styles.savedcontainer}>
-                                  {addedtosave ?(
-                                  <TouchableOpacity style={styles.savedbtn} onPress={()=>{handlesavepost(postidsave, myemail, addedtosave)}}>
-                                      <RemovingIcon size={30} color={"white"}/>
-                                      <Text style={styles.savedtext}>Remove from Saved </Text>
-                                  </TouchableOpacity>):(
-                                  <TouchableOpacity style={styles.savedbtn} onPress={()=>{handlesavepost(postidsave, myemail, addedtosave)}}>
-                                      <AddIcon size={30} color={"white"}/>
-                                      <Text style={styles.savedtext}>Add to Saved</Text>
-                                  </TouchableOpacity>)}
-                                  {addedtofavorite ?(
-                                  <TouchableOpacity style={styles.savedbtn} onPress={()=>{handleaddfavourites(postidsave, myemail, addedtosave)}}>
-                                      <BookmarkRemove size={30} color={"white"}/>
-                                      <Text style={styles.savedtext}>Remove from Favourites</Text>
-                                  </TouchableOpacity>):(
-                                  <TouchableOpacity style={styles.savedbtn} onPress={()=>{handleaddfavourites(postidsave, myemail, addedtosave)}}>
-                                      <Bookmark size={30} color={"white"}/>
-                                      <Text style={styles.savedtext}>Add to  Favourites</Text>
-                                  </TouchableOpacity>)}
-                                </View>
-                                <View>
-                                  {!me ? (
-                                  <>
-                                  <TouchableOpacity style={styles.savedbtn}>
-                                      <UserInfoIcon size={30} color={"red"}/>
-                                      <Text style={styles.savedtext}>Report</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity style={styles.savedbtn} onPress={()=>{handleaddfollowings(useremailfollow, myemail, followsuserstate)}}>
-                                      {followsuserstate ? (< UserMinusIcon size={30} color={"white"}/>):(<AddFollower  size={30} color={"white"}/>)}
-                                      <Text style={styles.savedtext}>{followsuserstate ? "Unfollow" : "Follow"}</Text>
-                                  </TouchableOpacity>
-                                  </>
-                                  ):(null)}
-
-                                  <TouchableOpacity style={styles.savedbtn}>
-                                      <ClosedEye size={30} color={"white"}/>
-                                      <Text style={styles.savedtext}>Hide</Text>
-                                  </TouchableOpacity>
-                                </View>
-                            </Animated.View>
-                        </TouchableOpacity>
+                    {optionmodalVisible && (
+    <Modal
+        transparent={true}
+        animationType="none"
+        visible={optionmodalVisible}
+        onRequestClose={closeoption}
+    >
+        <TouchableOpacity style={styles.modalBackground} onPress={closeoption}>
+            <TouchableOpacity activeOpacity={1} style={styles.modalContainer}>
+                <Animated.View style={[styles.modalContent, slideUpStyle]}>
+                    <TouchableOpacity style={styles.closeButton} onPress={closeoption}>
+                        <CloseButton size={30} color={"white"} />
                     </TouchableOpacity>
-                     </Modal>
-                    )}
+                    <View style={styles.savedcontainer}>
+                        {addedtosave ? (
+                            <TouchableOpacity style={styles.savedbtn} onPress={() => { handlesavepost(postidsave, myemail, addedtosave) }}>
+                                <RemovingIcon size={30} color={"white"} />
+                                <Text style={styles.savedtext}>Remove from Saved</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity style={styles.savedbtn} onPress={() => { handlesavepost(postidsave, myemail, addedtosave) }}>
+                                <AddIcon size={30} color={"white"} />
+                                <Text style={styles.savedtext}>Add to Saved</Text>
+                            </TouchableOpacity>
+                        )}
+                        {addedtofavorite ? (
+                            <TouchableOpacity style={styles.savedbtn} onPress={() => { handleaddfavourites(postidsave, myemail, addedtosave) }}>
+                                <BookmarkRemove size={30} color={"white"} />
+                                <Text style={styles.savedtext}>Remove from Favourites</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity style={styles.savedbtn} onPress={() => { handleaddfavourites(postidsave, myemail, addedtosave) }}>
+                                <Bookmark size={30} color={"white"} />
+                                <Text style={styles.savedtext}>Add to Favourites</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                    <View>
+                        {!me ? (
+                            <>
+                                <TouchableOpacity style={styles.savedbtn} onPress={() => navigation.navigate('Report', { postid: postidsave, useremail: useremailfollow })}>
+                                    <UserInfoIcon size={30} color={"red"} />
+                                    <Text style={styles.savedtext}>Report</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.savedbtn} onPress={() => { handleaddfollowings(useremailfollow, myemail, followsuserstate) }}>
+                                    {followsuserstate ? (
+                                        <UserMinusIcon size={30} color={"white"} />
+                                    ) : (
+                                        <AddFollower size={30} color={"white"} />
+                                    )}
+                                    <Text style={styles.savedtext}>{followsuserstate ? "Unfollow" : "Follow"}</Text>
+                                </TouchableOpacity>
+                            </>
+                        ) : null}
+
+                        <TouchableOpacity style={styles.savedbtn}>
+                            <ClosedEye size={30} color={"white"} />
+                            <Text style={styles.savedtext}>Hide</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+            </TouchableOpacity>
+        </TouchableOpacity>
+    </Modal>
+)}
                     {commentmodalVisible && (<Modal
                                  transparent={true}
                                  animationType="none"
