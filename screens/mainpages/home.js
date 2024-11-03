@@ -950,7 +950,7 @@ const closecommentModal = () => {
                                 <View>
                                   {!me ? (
                                   <>
-                                  <TouchableOpacity style={styles.savedbtn}>
+                                  <TouchableOpacity style={styles.savedbtn} onPress={() => navigation.navigate('Report', { postid: postidsave, useremail: useremailfollow })}>
                                       <UserInfoIcon size={30} color={"red"}/>
                                       <Text style={styles.savedtext}>Report</Text>
                                   </TouchableOpacity>
