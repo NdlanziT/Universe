@@ -138,7 +138,7 @@ const SearchScreen = ({ loggedInUserEmail }) => {
       {item.profileType === 'post' ? (
         <View>
           <Text style={[styles.resultText, { color: '#1e90ff' }]}>🆔{item.owner}</Text>
-          <Text style={styles.resultText}>-> {item.content}</Text>
+          <Text style={styles.resultText}>-{item.content}</Text>
           <Image source={{ uri: item.media || 'https://via.placeholder.com/150' }} style={styles.postImage} />
         </View>
       ) : (
