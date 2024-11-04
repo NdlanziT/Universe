@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+  Image,
+} from 'react-native';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { debounce } from 'lodash';
 
 const db = getFirestore();
+const storage = getStorage();
 
 const SearchScreen = ({ loggedInUserEmail }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,55 +38,72 @@ const SearchScreen = ({ loggedInUserEmail }) => {
     await AsyncStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
   };
 
+  const getImageUrl = async (path) => {
+    try {
+      const imageRef = ref(storage, path);
+      return await getDownloadURL(imageRef);
+    } catch (error) {
+      return 'https://via.placeholder.com/40';
+    }
+  };
+
   const searchFirestore = async (searchTerm) => {
     setLoading(true);
     const results = [];
 
     try {
-      // Searching for users
       if (activeTab === 'all' || activeTab === 'people') {
         const usersSnapshot = await getDocs(collection(db, 'users'));
-        usersSnapshot.forEach((doc) => {
+        const userPromises = usersSnapshot.docs.map(async (doc) => {
           const userData = doc.data();
-          const { username, name } = userData;
+          const { username, name, bio, profilepicture } = userData;
           if (
             (username && username.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (name && name.toLowerCase().includes(searchTerm.toLowerCase()))
+            (name && name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (bio && bio.toLowerCase().includes(searchTerm.toLowerCase()))
           ) {
+            const profilePicPath = `profilepictures/${profilepicture}`;
+            const profilePictureUrl = await getImageUrl(profilePicPath);
             results.push({
               id: doc.id,
               username,
               name,
+              bio,
               profileType: 'user',
-              profilepicture: userData.profilepicture || 'https://via.placeholder.com/40',
+              profilepicture: profilePictureUrl,
             });
           }
         });
+        await Promise.all(userPromises);
       }
 
-      // Searching for posts
       if (activeTab === 'all' || activeTab === 'marketplace' || activeTab === 'tutoring') {
         const postsSnapshot = await getDocs(collection(db, 'post'));
-        postsSnapshot.forEach((doc) => {
+        const postPromises = postsSnapshot.docs.map(async (doc) => {
           const postData = doc.data();
-          const { owner, category, media } = postData;
+          const { owner, category, content, media } = postData;
           const isCategoryMatch =
             activeTab === 'all' ||
             (activeTab === 'marketplace' && category === 'market place') ||
             (activeTab === 'tutoring' && category === 'tutoring service');
           if (
             isCategoryMatch &&
-            ((owner && owner.toLowerCase().includes(searchTerm.toLowerCase())) || category.toLowerCase().includes(searchTerm.toLowerCase()))
+            ((owner && owner.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              (content && content.toLowerCase().includes(searchTerm.toLowerCase())))
           ) {
+            const postPicPath = `postpictures/${media}`;
+            const postImageUrl = await getImageUrl(postPicPath);
             results.push({
               id: doc.id,
               owner,
-              media,
+              content,
               category,
               profileType: 'post',
+              media: postImageUrl,
             });
           }
         });
+        await Promise.all(postPromises);
       }
 
       setSearchResults(results);
@@ -87,24 +115,39 @@ const SearchScreen = ({ loggedInUserEmail }) => {
     }
   };
 
-  const handleSearch = (query) => {
+  const debouncedSearch = debounce((query) => {
+    if (query.length > 2) {
+      searchFirestore(query);
+    } else {
+      setSearchResults([]);
+    }
+  }, 300);
+
+  const handleSearchInput = (query) => {
     setSearchQuery(query);
-    if (query.length > 2) searchFirestore(query);
-    else setSearchResults([]);
+    debouncedSearch(query);
+  };
+
+  const handleRecentSearch = (query) => {
+    setSearchQuery(query);
+    searchFirestore(query);
   };
 
   const renderSearchResult = ({ item }) => (
-    <View style={styles.postCard}>
+    <View style={styles.resultCard}>
       {item.profileType === 'post' ? (
         <View>
-          <Text style={styles.resultText}>{item.owner}</Text>
-          <Text style={styles.resultText}>{item.category}</Text>
+          <Text style={[styles.resultText, { color: '#1e90ff' }]}>🆔{item.owner}</Text>
+          <Text style={styles.resultText}>-> {item.content}</Text>
           <Image source={{ uri: item.media || 'https://via.placeholder.com/150' }} style={styles.postImage} />
         </View>
       ) : (
         <View style={styles.userResult}>
           <Image source={{ uri: item.profilepicture }} style={styles.profileImage} />
-          <Text style={styles.resultText}>{item.username || item.name}</Text>
+          <View>
+            <Text style={[styles.resultText, { color: '#1e90ff' }]}>🪪{item.username} ~<Text style={{ color: 'blue', fontStyle: 'italic', fontWeight: '130' }}> {item.name}</Text></Text>
+            <Text style={styles.resultText}>Bio: {item.bio}</Text>
+          </View>
         </View>
       )}
     </View>
@@ -115,7 +158,7 @@ const SearchScreen = ({ loggedInUserEmail }) => {
       <View style={styles.searchBarContainer}>
         <TextInput
           value={searchQuery}
-          onChangeText={handleSearch}
+          onChangeText={handleSearchInput}
           placeholder="Search..."
           placeholderTextColor="#888"
           style={styles.searchInput}
@@ -206,7 +249,7 @@ const styles = {
     textAlign: 'center',
     marginTop: 20,
   },
-  postCard: {
+  resultCard: {
     borderBottomWidth: 1,
     borderBottomColor: '#333',
     paddingVertical: 15,
@@ -214,6 +257,8 @@ const styles = {
   },
   resultText: {
     color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   userResult: {
     flexDirection: 'row',
@@ -226,11 +271,12 @@ const styles = {
     marginRight: 10,
   },
   postImage: {
-    width: 100,
-    height: 100,
+    width: '100%',
+    height: 150,
     borderRadius: 10,
     marginTop: 10,
   },
 };
 
 export default SearchScreen;
+

@@ -981,7 +981,7 @@ const closecommentModal = () => {
           <TouchableOpacity style={styles.messageIconContainer} onPress={gotoAddPost}>
             <AddIcon size={30} color="white" style={styles.icon} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.messageIconContainer}onPress={gotosearch}>
+          <TouchableOpacity style={styles.messageIconContainer} onPress={gotosearch}>
             <SearchIcon size={34} color="white" style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.messageIconContainer} onPress={gotoMessage}>
@@ -991,37 +991,46 @@ const closecommentModal = () => {
         </View>
       </View>
       {loading ? (
-              <Animated.View style={{ ...styles.loadingContainer, opacity: fadeAnim }}>
-              <View style={styles.usernameplaceholder}>
-                <View style={styles.profilePicPlaceholder} />
-                <View style={styles.usernameelement}>
-                  <View style={styles.user} />
-                  <View style={styles.timeholder} />    
-                </View>
-              </View>
-              <View style={styles.postPlaceholder} />
-              <View style={styles.usernameplaceholder}>
-                <View style={styles.profilePicPlaceholder} />
-                <View style={styles.usernameelement}>
-                  <View style={styles.user} />
-                  <View style={styles.timeholder} />    
-                </View>
-              </View>
-              <View style={styles.postPlaceholder} />
-            </Animated.View>
-            ) : (
-                <ScrollView style={styles.ScrollViewcontainer}>
-                    <View style={styles.usercontainer}>
-                      <TouchableOpacity style={styles.seeallcontainer} onPress={()=>{gotosuggestedaccount()}}>
-                        <Text style={styles.seealltext}>See All</Text>
-                        <ForwardIcon color='white' size={24} />
-                      </TouchableOpacity>
-                      <ScrollView 
-                        horizontal 
-                        showsHorizontalScrollIndicator={false} 
-                        contentContainerStyle={{ flexDirection: 'row' }}
-                        style={styles.userdetailscontainer}
-                      >
+        <Animated.View style={{ ...styles.loadingContainer, opacity: fadeAnim }}>
+          <View style={styles.usernameplaceholder}>
+            <View style={styles.profilePicPlaceholder} />
+            <View style={styles.usernameelement}>
+              <View style={styles.user} />
+              <View style={styles.timeholder} />    
+            </View>
+          </View>
+          <View style={styles.postPlaceholder} />
+          <View style={styles.usernameplaceholder}>
+            <View style={styles.profilePicPlaceholder} />
+            <View style={styles.usernameelement}>
+              <View style={styles.user} />
+              <View style={styles.timeholder} />    
+            </View>
+          </View>
+          <View style={styles.postPlaceholder} />
+        </Animated.View>
+      ) : (
+        <ScrollView style={styles.ScrollViewcontainer}>
+          <View style={styles.usercontainer}>
+            {/* Ad Section */}
+            <TouchableOpacity style={styles.adContainer} onPress={() => navigation.navigate('Subscription')}>
+              <Image source={require('./ad.png')} style={styles.adImage} />
+            </TouchableOpacity>
+            
+            {/* See All Section */}
+            <TouchableOpacity style={styles.seeallcontainer} onPress={gotosuggestedaccount}>
+              <Text style={styles.seealltext}>See All</Text>
+              <ForwardIcon color='white' size={24} />
+            </TouchableOpacity>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              contentContainerStyle={{ flexDirection: 'row' }}
+              style={styles.userdetailscontainer}
+            >
+
+
                         
                     {suggestedaccount.map((account,index) => (
                         <TouchableOpacity key={index} style={styles.userDetails} onPress={()=>{gotoprofile(account.username,account.profilepic,account.name,account.email,account.bio,account.post,account.followers,account.following,following,currentUserId,saved,favorite)}}
@@ -1766,5 +1775,12 @@ userfollowbuttontext:
 {
   color: 'white',
   fontWeight: 'bold',
-}
+},
+adContainer: {
+  alignSelf: 'center',
+  padding: 15,
+  borderTopWidth: 2, // Add this line for the top border
+  borderTopColor: '#1e1e1e', // Specify the color for the top border
+  borderBottomColor: '#1e1e1e',
+},
 });
