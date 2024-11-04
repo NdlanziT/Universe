@@ -90,7 +90,7 @@ const Mentalhealth = () => {
       <View style={styles.expiredCard}>
         <Text style={styles.expiredTitle}>Plan Expired</Text>
         <Text style={styles.expiredText}>Get back chat access and session credits</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
           <Text style={styles.buyMoreText}>Buy More</Text>
         </TouchableOpacity>
       </View>

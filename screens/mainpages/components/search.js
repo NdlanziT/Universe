@@ -1,161 +1,236 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Import icons from Expo vector icons
-import { UserInfoIcon } from '../../icons/userinfo';
-import { HistoryIcon } from '../../icons/historyicon';
-import { BackButton } from '../../icons/back';
-import { SearchIcon } from '../../icons/search';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, Image } from 'react-native';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SearchPage = () => {
+const db = getFirestore();
+
+const SearchScreen = ({ loggedInUserEmail }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchHistory, setSearchHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchResults, setSearchResults] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock suggestions based on common searches
-  const suggestions = [
-    'Kicks',
-    'dm for prices',
-    'tutoring',
-    'cables',
-    'How-To Guides',
-  ];
-
-  // Load search history from local storage or set default
   useEffect(() => {
-    const loadHistory = async () => {
-      const history = ['tutoring service', 'shoes'];
-      setSearchHistory(history);
-    };
-    loadHistory();
+    loadRecentSearches();
   }, []);
-  const handleSuggestionSelect = (suggestion) => {
-    navigateToSearchResult(suggestion);
+
+  const loadRecentSearches = async () => {
+    const recent = await AsyncStorage.getItem('recentSearches');
+    if (recent) setRecentSearches(JSON.parse(recent));
   };
-  const handleHistorySelect = (historyItem) => {
-    navigateToSearchResult(historyItem);
+
+  const saveRecentSearch = async (query) => {
+    const updatedSearches = [query, ...recentSearches.filter((s) => s !== query)].slice(0, 5);
+    setRecentSearches(updatedSearches);
+    await AsyncStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
   };
-  const clearSearch = () => {
-    setSearchQuery('');
+
+  const searchFirestore = async (searchTerm) => {
+    setLoading(true);
+    const results = [];
+
+    try {
+      // Searching for users
+      if (activeTab === 'all' || activeTab === 'people') {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        usersSnapshot.forEach((doc) => {
+          const userData = doc.data();
+          const { username, name } = userData;
+          if (
+            (username && username.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (name && name.toLowerCase().includes(searchTerm.toLowerCase()))
+          ) {
+            results.push({
+              id: doc.id,
+              username,
+              name,
+              profileType: 'user',
+              profilepicture: userData.profilepicture || 'https://via.placeholder.com/40',
+            });
+          }
+        });
+      }
+
+      // Searching for posts
+      if (activeTab === 'all' || activeTab === 'marketplace' || activeTab === 'tutoring') {
+        const postsSnapshot = await getDocs(collection(db, 'post'));
+        postsSnapshot.forEach((doc) => {
+          const postData = doc.data();
+          const { owner, category, media } = postData;
+          const isCategoryMatch =
+            activeTab === 'all' ||
+            (activeTab === 'marketplace' && category === 'market place') ||
+            (activeTab === 'tutoring' && category === 'tutoring service');
+          if (
+            isCategoryMatch &&
+            ((owner && owner.toLowerCase().includes(searchTerm.toLowerCase())) || category.toLowerCase().includes(searchTerm.toLowerCase()))
+          ) {
+            results.push({
+              id: doc.id,
+              owner,
+              media,
+              category,
+              profileType: 'post',
+            });
+          }
+        });
+      }
+
+      setSearchResults(results);
+      if (searchTerm) saveRecentSearch(searchTerm);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
-  const navigateToSearchResult = (query) => {
-    console.log(`Navigating to SearchResultPage with query: ${query}`);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.length > 2) searchFirestore(query);
+    else setSearchResults([]);
   };
+
+  const renderSearchResult = ({ item }) => (
+    <View style={styles.postCard}>
+      {item.profileType === 'post' ? (
+        <View>
+          <Text style={styles.resultText}>{item.owner}</Text>
+          <Text style={styles.resultText}>{item.category}</Text>
+          <Image source={{ uri: item.media || 'https://via.placeholder.com/150' }} style={styles.postImage} />
+        </View>
+      ) : (
+        <View style={styles.userResult}>
+          <Image source={{ uri: item.profilepicture }} style={styles.profileImage} />
+          <Text style={styles.resultText}>{item.username || item.name}</Text>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => console.log('Back button pressed')}>
-        <BackButton size={30} color="white" />
-        </TouchableOpacity>
+      <View style={styles.searchBarContainer}>
         <TextInput
-          style={styles.searchInput}
-          placeholder="Search..."
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearch}
+          placeholder="Search..."
+          placeholderTextColor="#888"
+          style={styles.searchInput}
         />
-        <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
-        <SearchIcon size={30} color="white" />
+        <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+          <Text style={styles.clearButtonText}>X</Text>
         </TouchableOpacity>
       </View>
-      <ScrollView contentContainerStyle={styles.resultsContainer}>
-        {searchQuery === '' ? (
-          <>
-            {/* Display search history */}
-            {searchHistory.length > 0 && (
-              <View style={styles.historyContainer}>
-                <Text style={styles.historyTitle}>Search History</Text>
-                {searchHistory.map((item, index) => (
-                  <TouchableOpacity key={index} style={styles.historyItem} onPress={() => handleHistorySelect(item)}>
-                    <HistoryIcon size={30} color="white" />
-                    <Text style={styles.historyText}>{item}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-            
-            <Text style={styles.historyTitle}>Suggested search</Text>
-            {suggestions.map((suggestion, index) => (
-              <TouchableOpacity key={index} style={styles.suggestionItem} onPress={() => handleSuggestionSelect(suggestion)}>
-                <HistoryIcon size={30} color="white" />
-                <Text style={styles.suggestionText}>{suggestion}</Text>
-              </TouchableOpacity>
-            ))}
-          </>
-        ) : (
-         <View style={styles.historyContainer}>
-        <Text style={styles.historyTitle}>Your search</Text>
-        <TouchableOpacity style={styles.historyItem} onPress={() => handleSuggestionSelect(searchQuery)}>
-          <HistoryIcon size={30} color="white" />
-          <Text style={styles.suggestionText}>{searchQuery}</Text>
-        </TouchableOpacity>
-        </View>
-        )}
-      </ScrollView>
+
+      <View style={styles.tabsContainer}>
+        {['all', 'people', 'marketplace', 'tutoring'].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            style={[styles.tabButton, activeTab === tab && styles.activeTab]}
+          >
+            <Text style={styles.tabText}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#1e90ff" style={styles.loadingIndicator} />
+      ) : (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => item.id}
+          renderItem={renderSearchResult}
+          ListEmptyComponent={
+            <Text style={styles.emptyMessage}>
+              {searchQuery ? 'No results found' : 'Search for something'}
+            </Text>
+          }
+        />
+      )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
+    backgroundColor: '#000',
     padding: 16,
-    backgroundColor: 'black',
   },
-  topBar: {
+  searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 25,
-    justifyContent:'space-between',
+    marginBottom: 20,
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    borderColor: 'white',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    backgroundColor: 'white',
-    marginHorizontal: 10,
+    backgroundColor: '#333',
+    color: 'white',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
   },
   clearButton: {
+    marginLeft: 10,
   },
-  resultsContainer: {
-    paddingBottom: 20,
+  clearButtonText: {
+    color: 'white',
+    fontSize: 18,
   },
-  historyContainer: {
+  tabsContainer: {
+    flexDirection: 'row',
     marginBottom: 20,
+  },
+  tabButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  activeTab: {
+    backgroundColor: '#1e90ff',
+  },
+  tabText: {
+    color: 'white',
+    textTransform: 'capitalize',
+  },
+  loadingIndicator: {
     marginTop: 20,
   },
-  historyTitle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  emptyMessage: {
+    color: 'gray',
+    textAlign: 'center',
+    marginTop: 20,
   },
-  historyItem: {
+  postCard: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+  },
+  resultText: {
+    color: 'white',
+  },
+  userResult: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
   },
-  historyText: {
-    marginLeft: 10,
-    color: 'white',
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
   },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+  postImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginTop: 10,
   },
-  suggestionText: {
-    marginLeft: 10,
-    color: 'white',
-  },
-  noResults: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  noResultsText: {
-    color: 'white',
-  },
-});
+};
 
-export default SearchPage;
+export default SearchScreen;

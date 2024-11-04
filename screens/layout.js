@@ -55,6 +55,10 @@ import Journal from './mainpages/components/journal';
 import Library from './mainpages/components/journallibrary';
 import ReportScreen from './mainpages/components/report';
 
+import Search from './mainpages/components/search';
+
+import SearchResult from './mainpages/components/searchresult';
+import SubscriptionScreen from './mainpages/components/subscription';
 
 
 
@@ -230,6 +234,19 @@ const Layout = () => {
                 name='Report'
                 component={ReportScreen}
                 options={{ headerTitleAlign: 'center', headerShown: false }}        /> 
+            <Stack.Screen 
+                name='Search'  
+                component={Search}  
+                options={{ headerTitleAlign: 'center', headerShown: false }}        />
+
+            <Stack.Screen 
+                name='SearchResult'  
+                component={SearchResult}      
+                options={{ headerTitleAlign: 'center', headerShown: false }}        />
+            <Stack.Screen
+                name='Subscription'
+                component={SubscriptionScreen}
+                options={{ headerTitleAlign: 'center', headerShown: false }}        />
       </Stack.Navigator>
     </NavigationContainer>
   );
