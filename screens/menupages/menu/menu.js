@@ -6,7 +6,7 @@ import { ForwardIcon } from '../../icons/foward';
 
 const Menu = ({navigation,route}) => {
 
-    const {email,following,blocked,accountprivacy,theme,phone,setPhone,setFollowing,setTheme} = route.params;
+    const {profilepicture,username,email,following,blocked,accountprivacy,saved,favorite,theme,phone,setPhone,setFollowing,setTheme,setSaved,setFavorite,chat} = route.params;
     const [blockeduser, setblockeduser] = useState(blocked);
 
 
@@ -26,7 +26,7 @@ const Menu = ({navigation,route}) => {
         navigation.navigate("Favourites");
     }
     const handlediscover = ()=>{
-        navigation.navigate("Discover",{setFollowing,following,email});
+        navigation.navigate("Discover",{setFollowing,following,email,chat,saved,favorite,profilepicture,username,setSaved,setFavorite});
     }
     const handleinsight = ()=>{
         navigation.navigate("Dashboard");

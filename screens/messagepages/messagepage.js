@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TextInput, ScrollView, StyleSheet, TouchableOpacity,ActivityIndicator } from 'react-native';
 import { db } from '../../firebase';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { query, collection, getDocs, where,updateDoc,arrayUnion, setDoc,doc,onSnapshot } from 'firebase/firestore';
@@ -9,10 +9,14 @@ import { SendIcon } from '../icons/send';
 import { CloseButton } from '../icons/close';
 
 const Messagespage = ({ navigation, route }) => {
-  const { user_profilepiture, user_username, user_name, user_following, user_post, user_email, user_followers, messages_id, following, myemail, saved, favorite,chatid } = route.params;
+  const { user_profilepiture, user_username, user_name, user_following, user_post, user_email, user_followers, messages_id, following, myemail, saved, favorite,chatid,existing,setSaved,setFavorite,myprofilepicture,myusername,user_bio } = route.params;
+  const [newuser,setnewuser] = useState(existing)
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [message_array, set_MessageArray] = useState(messages_id)
+  const [messageloading,setmessageloading] = useState(false)
+  const [deleteloading,setDeleteloading] = useState(false)
+  const [chatidd,setchatidd]= useState(chatid)
 
   const postdate = () => {
     let d = new Date();
@@ -49,6 +53,12 @@ const Messagespage = ({ navigation, route }) => {
   const followstate = checkFollowStatus(following, user_following, myemail, user_email);
 
   const fetchMessages = (ids) => {
+    // Stop the function if the ids array is empty
+    if (!ids || ids.length === 0) {
+      console.warn("No message IDs provided; stopping fetchMessages.");
+      return;
+    }
+  
     const messageCollectionRef = collection(db, 'messages');
     const messageQuery = query(messageCollectionRef, where('id', 'in', ids));
   
@@ -62,7 +72,7 @@ const Messagespage = ({ navigation, route }) => {
   
       // Sort messages from newest to oldest
       const sortedMessages = fetchedMessages.sort((a, b) => {
-        const dateA = new Date(a.createddat); // `createddat` is already in `YYYY-MM-DD HH:MM` format
+        const dateA = new Date(a.createddat);
         const dateB = new Date(b.createddat);
         return dateA - dateB; // Sort from newest to oldest
       });
@@ -72,8 +82,10 @@ const Messagespage = ({ navigation, route }) => {
     }, (error) => {
       console.error('Error listening for message updates:', error);
     });
+  
     return unsubscribe;
   };
+  
   const updateChatFields = async (chatId, myEmail, currentMessage,newMessageId) => {
     try {
         const chatRef = doc(db, 'chats', chatId);
@@ -83,17 +95,20 @@ const Messagespage = ({ navigation, route }) => {
             read: false,
             messageid: arrayUnion(newMessageId),
         });
-        set_MessageArray((prev) => [...prev, chatId])
     } catch (error) {
         console.error("Error updating chat fields:", error);
     }
 };
+
 const sendnewmessage = async () => {
+  // Reference the messages collection
   const collectionRef = collection(db, 'messages');
-
-  // Generate a custom document ID
+  
+  // Generate unique IDs for the message and chat
   let id = `${myemail}_${user_email}_${postdate()}_${Date.now()}`;
-
+  let newchatid = `${myemail}_${user_email}_${Date.now()}`;
+  
+  // Document for the new message
   const newDocument = {
     content: message,
     createddat: postdate(),
@@ -101,55 +116,101 @@ const sendnewmessage = async () => {
     sender: myemail,
   };
 
-  try {
-    // Create a document reference with a custom ID
-    const docRef = doc(collectionRef, id);
+  // Data structure for the chat document
+  const chatData = {
+    id: newchatid,
+    lastmessageowner: myemail,
+    members: [user_email, myemail],
+    message: message,
+    messageid: [id],
+    read: false
+  };
 
-    // Set the document data
+  try {
+    // Reference the message document
+    const docRef = doc(collectionRef, id);
+    
+    // Save the message document
     await setDoc(docRef, newDocument);
 
-    // Update chat fields
-    await updateChatFields(chatid, myemail, message, docRef.id);
-    setMessage('');
+    if (newuser) {  
+      await updateChatFields(chatidd, myemail, message, docRef.id);
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { ...newDocument, sender: "me" }
+      ]);
+
+      setMessage(''); 
+    } else {
+      // Reference the user document
+      const userDocRef = doc(db, "users", myemail);
+      const otheruserDocRef = doc(db, "users", user_email);
+
+      // Update the user document's chat array to include the new chat ID
+      await updateDoc(userDocRef, {
+        chat: arrayUnion(newchatid)
+      });
+      await updateDoc(otheruserDocRef, {
+        chat: arrayUnion(newchatid)
+      });
+      // Update messages state
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { ...newDocument, sender: "me" }
+      ]);
+
+      // Create a new document in the chats collection for the chat
+      const chatDocRef = doc(db, "chats", newchatid);
+      await setDoc(chatDocRef, chatData);
+
+      setnewuser(false); // Reset new user flag
+      setchatidd(newchatid)
+    }
   } catch (error) {
-    console.error("Error adding document: ", error);
+    console.error("Error adding document or updating fields: ", error);
   }
 };
 
 
- const deleteChatfields = async (chatId, myEmail, currentMessage,newMessageId)=>{
+const deleteChatfields = async (chatId, myEmail) => {
   try {
     const chatRef = doc(db, 'chats', chatId);
     await updateDoc(chatRef, {
-        lastmessageowner: myEmail,
-        message: "message was deleted",
-        read: false,
+      lastmessageowner: myEmail,
+      message: "message was deleted",
+      read: false,
     });
-    set_MessageArray((prev) => prev.filter(id => id !== chatId));
-} catch (error) {
+  } catch (error) {
     console.error("Error updating chat fields:", error);
+  }
+};
+
+const deletemessage = async (lastone,messageid)=>{
+    
+    try{
+      const MessageRef = doc(db, 'messages', messageid);
+        await updateDoc(MessageRef, {
+            content: 'message was deleted',
+        });
+      if(lastone){
+        await deleteChatfields(chatId, myEmail);
+      }
+    }catch (error) {
+
+    }
+  }
+
+  const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite)=>{
+    navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername})
 }
 
- }
-const deletemessage = ()=>{
+useEffect(() => {
+  const unsubscribe = fetchMessages(message_array);
 
-}
-
-  const handleSend = () => {
-    console.log('Message sent:', message);
-    setMessage('');
+  return () => {
+    if (unsubscribe) unsubscribe(); // Cleanup listener if it exists
   };
-
-  const handleGoToProfileUser = () => {
-    navigation.navigate("Userprofile");
-  };
-
-  useEffect(() => {
-    const unsubscribe = fetchMessages(message_array);
-    return () => {
-      unsubscribe();
-    };
-  }, [message_array]);
+}, [message_array]);
 
   return (
     <View style={styles.container}>
@@ -177,7 +238,7 @@ const deletemessage = ()=>{
           <Text style={styles.username}>{user_name}</Text>
           <Text style={styles.followDetails}>{user_following.length} following · {user_post} post</Text>
           <Text style={styles.followInfo}>{followstate}</Text>
-          <TouchableOpacity style={styles.viewProfileButton} onPress={handleGoToProfileUser}>
+          <TouchableOpacity style={styles.viewProfileButton} onPress={()=>{gotoprofile(user_username,user_profilepiture,user_name,user_email,user_bio,user_post,user_followers,user_following,following,myemail,saved,favorite)}}>
             <Text style={styles.viewProfileText}>View Profile</Text>
           </TouchableOpacity>
         </View>
@@ -194,8 +255,12 @@ const deletemessage = ()=>{
             </View>
             {item.sender === 'me' && (
             <View style={styles.editMessageContainer}>
-                <TouchableOpacity style={styles.editMessageBtn}>
-                  <Text style={styles.editMessageText}>Delete message</Text>
+                <TouchableOpacity style={styles.editMessageBtn} onPress={()=>{deletemessage(true,item.id)}}>
+                  {deleteloading ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ):(
+                    <Text style={styles.editMessageText}>Delete</Text>
+                  )}
                 </TouchableOpacity>
             </View>
             )}
@@ -204,9 +269,6 @@ const deletemessage = ()=>{
       </ScrollView>
 
       <View style={styles.inputContainer}>
-        {message === '' ? (
-          <Text style={styles.inputIcon}><CameraIcon size={40} color="#007AFF" /></Text>
-        ) : null}
         <TextInput
           style={styles.input}
           placeholder="Send a message."
@@ -216,7 +278,13 @@ const deletemessage = ()=>{
         />
         {message !== '' ? (
           <TouchableOpacity onPress={()=>{sendnewmessage()}}>
-            <Text style={styles.inputIcon}><SendIcon size={40} color="#007AFF" /></Text>
+            <Text style={styles.inputIcon}>
+              {messageloading ? (
+                <ActivityIndicator size="small" color="white" />
+              ):(
+                <SendIcon size={40} color="#007AFF" />
+              )}
+              </Text>
           </TouchableOpacity>
         ) : null}
       </View>

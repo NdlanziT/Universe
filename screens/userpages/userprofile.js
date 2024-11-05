@@ -38,7 +38,7 @@ const Userprofile = ({navigation,route}) => {
     const [posts,setPosts] = useState([]);
     const [optionpostmodalVisible, setOptionpostmodalVisible] = useState(false);
 
-    const {username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername} = route.params
+    const {username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername,mychat,userchat} = route.params
 
     const scrollViewRef = useRef(null);
     const [addedtosave,setAddedtosave] = useState(false);
@@ -54,6 +54,10 @@ const Userprofile = ({navigation,route}) => {
   const [postidcomment,setPostidcomment] = useState("");
   const [loadingcomment,setloadingcomment] = useState(false);
   const [currentcommentid,setCurrentcommentid] = useState("");
+
+  
+  const chatid = mychat.find(item => userchat.includes(item)) || '';
+  const chatstate = chatid !== '';
 
   const postdate = () => {
     let d = new Date();
@@ -651,7 +655,7 @@ const closecommentModal = () => {
         Alert.alert("you click a search button")
     };
     const followingpagehandle = ()=> {
-        navigation.navigate("Userfollowers",{username,email,followers,following,myfollowing,myemail})
+        navigation.navigate("Userfollowers",{username,email,followers,following,myfollowing,myemail,saved,favorite,mychat,userchat,setSaved,setFavorite,myprofilepicture,myusername,mychat,userchat})
     };
     const messagehandle = ()=> {
       navigation.navigate("Message")
@@ -671,6 +675,82 @@ const closecommentModal = () => {
   
     const closeImageModal = () => {
       setImageModalVisible(false);
+    };
+    const handleaccount = async (
+      user_profilepiture,
+      user_username,
+      user_name,
+      user_following,
+      user_post,
+      user_email,
+      user_followers,
+      messages_id,
+      chatid,
+      user_bio,
+      state
+    ) => {
+      if (state) {
+        try {
+          // Fetch message IDs from the database
+          const chatDocRef = doc(db, "chats", chatid); // Reference to the chat document
+          const chatDoc = await getDoc(chatDocRef); // Get the document
+    
+          if (chatDoc.exists()) {
+            const chatData = chatDoc.data();
+            const fetchedMessageIds = chatData.messageid || []; // Get messageid field
+    
+            // Navigate to the Message screen with fetched message IDs
+            navigation.navigate("Message", {
+              user_profilepiture,
+              user_username,
+              user_name,
+              user_following,
+              user_post,
+              user_email,
+              user_followers,
+              messages_id: fetchedMessageIds, // Use the fetched message IDs
+              following,
+              myemail,
+              saved,
+              favorite,
+              chatid,
+              existing: state,
+              setSaved,
+              setFavorite,
+              myprofilepicture,
+              myusername,
+              user_bio,
+            });
+          } else {
+            console.error("Chat document does not exist");
+          }
+        } catch (error) {
+          console.error("Error fetching chat data: ", error);
+        }
+      } else {
+        // Navigate without fetching data if state is false
+        navigation.navigate("Message", {
+          user_profilepiture,
+          user_username,
+          user_name,
+          user_following,
+          user_post,
+          user_email,
+          user_followers,
+          messages_id,
+          following,
+          myemail,
+          saved,
+          favorite,
+          chatid,
+          existing: state,
+          setSaved,
+          setFavorite,
+          myprofilepicture,
+          myusername,
+          user_bio,
+        });
+      }
     };
 
   const openpostoptionModal = () => {
@@ -740,6 +820,7 @@ const closecommentModal = () => {
 };
 
 
+
   return (
     <View style={styles.container}>
       <View style={styles.group1}>
@@ -804,7 +885,7 @@ const closecommentModal = () => {
             </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={styles.buttonFollow} onPress={messagehandle}>
+            <TouchableOpacity style={styles.buttonFollow} onPress={()=>{handleaccount(profilepic,username,name,following,post,email,followers,messages_id = [],chatid,bio,chatstate)}}>
                 <Text style={styles.buttonText}>Message</Text>
             </TouchableOpacity>
         </View>

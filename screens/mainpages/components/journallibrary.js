@@ -5,6 +5,12 @@ import { getDocs, collection, doc, deleteDoc, updateDoc } from 'firebase/firesto
 import { db } from '../../../firebase';
 import Dialog from 'react-native-dialog';
 
+import { BackButton } from '../../icons/back';
+import { CalendarIcon } from '../../icons/calender';
+import { BinIcon } from '../../icons/bin';
+import { StarFill } from '../../icons/starfill';
+import { FullFill } from '../../icons/fullfill';
+
 const Library = ({ navigation }) => {
   const [journalEntries, setJournalEntries] = useState([]);
   const [totalEntries, setTotalEntries] = useState(0);
@@ -14,6 +20,8 @@ const Library = ({ navigation }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+
 
   useEffect(() => {
     const fetchEntries = async () => {
@@ -76,6 +84,10 @@ const Library = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.topbar}  onPress={() => navigation.goBack()}>
+      <BackButton color='white' size={30}/>
+      <Text style={styles.header}>Library</Text>
+      </TouchableOpacity>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -84,7 +96,6 @@ const Library = ({ navigation }) => {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <Icon name="search" style={styles.searchIcon} />
       </View>
 
       <View style={styles.counterContainer}>
@@ -107,9 +118,9 @@ const Library = ({ navigation }) => {
                 item.mood.toLowerCase() === 'happy' ? styles.moodHappy :
                 styles.moodTerrific]}>
                 <View style={styles.entryHeader}>
-                  <Icon name="calendar-today" style={styles.icon} />
+                  <BinIcon color='red' style={styles.icon} />
                   <Text style={styles.entryDate}>{new Date(item.createdDate * 1000).toLocaleDateString()}</Text>
-                  {item.favorite && <Icon name="star" style={styles.favoritedIcon} />}
+                  {item.favorite && <StarFill color='gold' style={styles.favoritedIcon} />}
                 </View>
                 <Text style={styles.entryMood}>{item.mood}</Text>
                 <Text style={styles.entryContent}>
@@ -120,10 +131,10 @@ const Library = ({ navigation }) => {
 
             <View style={styles.buttonsContainer}>
               <TouchableOpacity onPress={() => { setSelectedJournal(item); setShowDeleteDialog(true); }}>
-                <Icon name="delete" size={24} color="#ff4d4d" />
+                <BinIcon size={24} color="#ff4d4d" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => { handleToggleFavorite(); }}>
-                <Icon name={item.favorite ? "star" : "star-border"} size={24} color={item.favorite ? "#FFD700" : "#ccc"} />
+                {item.favorite ? <StarFill color='#FFD700'/>: <FullFill color='#ccc' />}
               </TouchableOpacity>
             </View>
           </View>
@@ -187,8 +198,8 @@ const Library = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#121212',
+    padding: 10,
+    backgroundColor: 'black',
     flex: 1,
   },
   searchContainer: {
@@ -258,7 +269,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 16,
-    marginRight: 5,
+    marginRight: 10,
     color: '#FFF',
   },
   entryDate: {
@@ -321,6 +332,9 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#FFF',
   },
+  topbar:{flexDirection:"row",alignItems:"center",marginTop: 25,marginLeft:3,marginBottom:25},
+  header: { fontSize: 28, fontWeight: 'bold', color: '#fff', textAlign: 'center',marginLeft:10 },
+
 });
 
 export default Library;

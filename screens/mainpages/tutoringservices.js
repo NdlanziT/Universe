@@ -45,7 +45,7 @@ import { AddFollower } from '../icons/addfollower';
 const { width, height } = Dimensions.get('window');
 
 const Tutoringservices = ({navigation}) => {
-  const [search, setSearch] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [optionmodalVisible, setoptionModalVisible] = useState(false);
@@ -63,6 +63,7 @@ const Tutoringservices = ({navigation}) => {
   const [post,setPost] = useState([])
   const [saved,setSaved] = useState([])
   const [favorite,setFavorite] = useState([])
+  const [chat,setChat] = useState([])
   const [unfollowingpost,setUnfollowingPost] = useState([])
   const [myprofilepicture,setProfilePicture] = useState('')
   const currentUserId = auth.currentUser?.email
@@ -491,10 +492,13 @@ const closeImageModal = () => {
                 post: user.post,
                 email: user.email,
                 profilepic: user.profilepicture,
+                chat : user.chat
               };
               // Determine if the post belongs to the current user
               postData.mine = user.email === currentUserId;
               postData.followsuserstate = myfollowing.includes(user.email);
+              postData.chatarray = user.chat.find(item => chat.includes(item)) || '';
+              postData.chatstate = postData.chatarray !== '';
             }
     
             return postData;
@@ -568,6 +572,7 @@ const closeImageModal = () => {
           following: userData.following,
           saved: userData.saved,
           favourites: userData.favourites,
+          chat : userData.chat,
         };
       } else {
         throw new Error("User not found");
@@ -588,6 +593,7 @@ const closeImageModal = () => {
         setFavorite(userData.favourites);
         setSaved(userData.saved);
         setMyUsername(userData.username);
+        setChat(userData.chat);
       }
     } catch (error) {
       console.error("Error fetching current user data:", error);
@@ -636,9 +642,86 @@ const closeImageModal = () => {
   };
 
 
-  const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail)=>{
-    navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail})
+  const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,mychat,userchat)=>{
+    navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,mychat,userchat})
 }
+
+const handleaccount = async (
+  user_profilepiture,
+  user_username,
+  user_name,
+  user_following,
+  user_post,
+  user_email,
+  user_followers,
+  messages_id,
+  chatid,
+  user_bio,
+  state
+) => {
+  if (state) {
+    try {
+      // Fetch message IDs from the database
+      const chatDocRef = doc(db, "chats", chatid); // Reference to the chat document
+      const chatDoc = await getDoc(chatDocRef); // Get the document
+
+      if (chatDoc.exists()) {
+        const chatData = chatDoc.data();
+        const fetchedMessageIds = chatData.messageid || []; // Get messageid field
+
+        // Navigate to the Message screen with fetched message IDs
+        navigation.navigate("Message", {
+          user_profilepiture,
+          user_username,
+          user_name,
+          user_following,
+          user_post,
+          user_email,
+          user_followers,
+          messages_id: fetchedMessageIds, // Use the fetched message IDs
+          following,
+          myemail,
+          saved,
+          favorite,
+          chatid,
+          existing: state,
+          setSaved,
+          setFavorite,
+          myprofilepicture,
+          myusername,
+          user_bio,
+        });
+      } else {
+        console.error("Chat document does not exist");
+      }
+    } catch (error) {
+      console.error("Error fetching chat data: ", error);
+    }
+  } else {
+    // Navigate without fetching data if state is false
+    navigation.navigate("Message", {
+      user_profilepiture,
+      user_username,
+      user_name,
+      user_following,
+      user_post,
+      user_email,
+      user_followers,
+      messages_id,
+      following,
+      myemail,
+      saved,
+      favorite,
+      chatid: [],
+      existing: state,
+      setSaved,
+      setFavorite,
+      myprofilepicture,
+      myusername,
+      user_bio,
+    });
+  }
+};
 
   const timeDifference = useCallback((dateString) => {
     const inputDate = new Date(dateString);
@@ -858,7 +941,7 @@ const closecommentModal = () => {
                         <View key={index} style={styles.postContainer}>
                             <View style={styles.postHeader}>
                                 <Image source={{uri :post.ownerInfo?.profilepic}} style={styles.avatar} />
-                                <TouchableOpacity style={styles.postInfo} onPress={()=>{gotoprofile(post.ownerInfo?.username,post.ownerInfo?.profilepic,post.ownerInfo?.name,post.ownerInfo?.email,post.ownerInfo?.bio,post.ownerInfo?.post,post.ownerInfo?.followers,post.ownerInfo?.following,following,currentUserId)}}>
+                                <TouchableOpacity style={styles.postInfo} onPress={()=>{gotoprofile(post.ownerInfo?.username,post.ownerInfo?.profilepic,post.ownerInfo?.name,post.ownerInfo?.email,post.ownerInfo?.bio,post.ownerInfo?.post,post.ownerInfo?.followers,post.ownerInfo?.following,following,currentUserId,chat,post.ownerInfo.chat)}}>
                                     <Text style={styles.username}>{post.ownerInfo?.username}</Text>
                                     <Text style={styles.time}>{timeDifference(post.createdat)} ago</Text>
                                 </TouchableOpacity>
@@ -898,9 +981,9 @@ const closecommentModal = () => {
                             </View>
                             {!post.mine && (
                             <View style={styles.buttoncontainerfollow}>
-                              <TouchableOpacity style={styles.buttonsendmessagebtn}>
+                            <TouchableOpacity style={styles.buttonsendmessagebtn} onPress={()=>{handleaccount(post.ownerInfo?.profilepic,post.ownerInfo?.username,post.ownerInfo?.name,post.ownerInfo?.following,post.ownerInfo?.post,post.ownerInfo?.email,post.ownerInfo?.followers,messages_id = [],post.chatarray,post.ownerInfo?.bio,post.chatstate)}}>
                                 <Text style={styles.username}>Send message</Text>
-                              </TouchableOpacity>
+                            </TouchableOpacity>
                               {!post.followsuserstate && (
                               <TouchableOpacity style={styles.buttonsendmessagebtn} onPress={()=>{handleaddfollowings(post.ownerInfo?.email,currentUserId,false)}}>
                                 <Text style={styles.username}>Follow</Text>
@@ -997,7 +1080,7 @@ const closecommentModal = () => {
                                                         } else {
                                                           replytouser(comment.ownerInfo?.username,comment.ownerInfo?.email); // Set reply to the clicked username
                                                         }}}>
-                                                        <TouchableOpacity onPress={()=>{gotoprofile(comment.ownerInfo?.username,comment.ownerInfo?.profilepic,comment.ownerInfo?.name,comment.ownerInfo?.email,comment.ownerInfo?.bio,comment.ownerInfo?.post,comment.ownerInfo?.followers,comment.ownerInfo?.following,following,currentUserId),closecommentModal()}}>
+                                                        <TouchableOpacity onPress={()=>{gotoprofile(comment.ownerInfo?.username,comment.ownerInfo?.profilepic,comment.ownerInfo?.name,comment.ownerInfo?.email,comment.ownerInfo?.bio,comment.ownerInfo?.post,comment.ownerInfo?.followers,comment.ownerInfo?.following,following,currentUserId,chat,comment.ownerInfo.chat),closecommentModal()}}>
                                                         <Image
                                                           source={{uri : comment.ownerInfo?.profilepic}}
                                                           style={styles.avatar}

@@ -8,19 +8,21 @@ import { BackButton } from '../../icons/back';
 
 const Followingpage = ({navigation,route}) => {
     const [search, setSearch] = useState("");
-    const {followers,following,username,ActivePage,setFollowers,setFollowing,email} = route.params;
+    const {followers,following,profilepicture,username,ActivePage,setFollowers,setFollowing,email,setSaved,setFavorite,saved,favorite,chat} = route.params;
     const [usersfollowers,setUsersfollowers] = useState([])
     const [usersFollowing, setUsersFollowing] = useState([])
     const [loading, setLoading] = useState(true)
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const [activePage, setActivePage] = useState(ActivePage)
 
+    const myusername = username
+
     const backbutton = ()=>{
         navigation.goBack()
     }
 
-    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail)=>{
-        navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail})
+    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,mychat,userchat)=>{
+        navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture : profilepicture,myusername: myusername,mychat,userchat})
     }
 
 
@@ -217,6 +219,8 @@ const Followingpage = ({navigation,route}) => {
         fetchfollowings(following);
     }, []);
 
+    console.log(chat)
+
 
     return (
         <View style={styles.container}>
@@ -291,7 +295,7 @@ const Followingpage = ({navigation,route}) => {
                             onChangeText={setSearch}
                         />
                         {usersfollowers.map((user, index) => (
-                        <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,following,email)}}>
+                        <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,following,email,saved,favorite,chat,user.chat)}}>
                             <Image
                                 source={{uri : user.profilepic}} 
                                 style={styles.profilepic}
@@ -322,7 +326,7 @@ const Followingpage = ({navigation,route}) => {
                             onChangeText={setSearch}
                         />
                         {usersFollowing.map((user, index) => (
-                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,following,email)}} >
+                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,following,email,saved,favorite,chat,user.chat)}} >
                                 <Image
                                     source={{uri : user.profilepic}} 
                                     style={styles.profilepic}

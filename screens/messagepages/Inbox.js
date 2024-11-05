@@ -6,7 +6,7 @@ import { collection, query, getDocs, doc, getDoc, where,updateDoc,onSnapshot,del
 import { getDownloadURL, ref } from 'firebase/storage';
 
 const Inbox = ({navigation,route}) => {
-    const { myemail,chat,following,saved,favorite } = route.params;
+    const { myemail,chat,following,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername } = route.params;
     const [modalVisible, setModalVisible] = useState(false);
     const [accounts, setAccounts] = useState([]); 
     const [currentaccount, setCurrentAccount] = useState('')
@@ -31,6 +31,7 @@ const Inbox = ({navigation,route}) => {
                                 ...user,
                                 profilepicture: await fetchProfilePictureURL(user.profilepicture),
                                 name: user.name,
+                                bio : user.bio,
                                 following: user.following,
                                 post: user.post,
                                 email: user.email,
@@ -128,8 +129,8 @@ const Inbox = ({navigation,route}) => {
         setAlreadyRead(readedstate);
         
     };
-    const handleaccount =(user_profilepiture,user_username,user_name,user_following,user_post,user_email,user_followers,messages_id,chatid,markread)=>{
-        navigation.navigate("Message", {user_profilepiture,user_username,user_name,user_following,user_post,user_email,user_followers,messages_id,following,myemail,saved,favorite,chatid })
+    const handleaccount =(user_profilepiture,user_username,user_name,user_following,user_post,user_email,user_followers,messages_id,chatid,markread,lastmessage,user_bio)=>{
+        navigation.navigate("Message", {user_profilepiture,user_username,user_name,user_following,user_post,user_email,user_followers,messages_id,following,myemail,saved,favorite,chatid,existing : true,setSaved,setFavorite,myprofilepicture,myusername,user_bio })
         if (markread !== myemail){
             markChatAsUnread(chatid,false)
         }
@@ -209,7 +210,7 @@ const Inbox = ({navigation,route}) => {
                                 handleLongPress(account.id, false);
                             }
                         }}
-                            onPress={()=>handleaccount(account.ownerInfo.profilepicture,account.ownerInfo.username,account.ownerInfo.name,account.ownerInfo.following,account.ownerInfo.post,account.ownerInfo.email,account.ownerInfo.followers,account.messageid,account.id,account.lastmessageowner)}
+                            onPress={()=>handleaccount(account.ownerInfo.profilepicture,account.ownerInfo.username,account.ownerInfo.name,account.ownerInfo.following,account.ownerInfo.post,account.ownerInfo.email,account.ownerInfo.followers,account.messageid,account.id,account.lastmessageowner,account.message,account.ownerInfo.bio)}
                             style={styles.accountRow}
                     >
                         <Image source={{ uri: account.ownerInfo.profilepicture }} style={styles.profilePic} />
@@ -217,7 +218,7 @@ const Inbox = ({navigation,route}) => {
                             <Text style={styles.name}>{account.ownerInfo.username}</Text>
                             <Text style={styles.message}>{account.message}</Text>
                         </View>
-                        {!account.read && (
+                        {(!account.read && account.lastmessageowner !== myemail) && (
                             <View style={styles.notificationBadge}>
                             </View>
                         )}

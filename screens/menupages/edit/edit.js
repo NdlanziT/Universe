@@ -17,7 +17,7 @@ const Edit = ({navigation,route}) => {
 
     const [loading, setLoading] = useState(false);
     const [media, setMedia] = useState(null);
-    const {name,username,bio,profilepicture,email,setUsername,setBio,setProfilepicture} = route.params;
+    const {name,username,bio,profilepicture,email,setUsername,setBio,setProfilepicture,phone,setPhone} = route.params;
     const [currentusername,setCurrentusername] = useState(username);
     const [currentbio,setCurrentbio] = useState(bio)
     const [currentprofilepicture,setCurrentprofilepicture] = useState(profilepicture)
@@ -79,7 +79,7 @@ const Edit = ({navigation,route}) => {
 
 
     const handlegotomanageaccount = ()=>{
-        navigation.navigate("Manageaccount")
+        navigation.navigate("Manageaccount",{phone,setPhone})
     }
     const handleverify = ()=>{
         Alert.alert("verify is not yet available")

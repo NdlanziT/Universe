@@ -18,12 +18,12 @@ const Userfollowers = ({navigation,route}) => {
 
     const backbutton = ()=>{navigation.goBack()}
 
-    const {username,email,followers,following,myfollowing,myemail} = route.params
+    const {username,email,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername,mychat,userchat} = route.params
 
     const commonEmails = myfollowing.filter(email => following.includes(email) || followers.includes(email));
 
-    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail)=>{
-        navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail})
+    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,mychat,userchat)=>{
+        navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername,mychat,userchat})
     }
     
     const removefollowers = ()=>{
@@ -229,7 +229,7 @@ const Userfollowers = ({navigation,route}) => {
                             </View>
                         ):(
                             usersfollowers.map((user,index) => (
-                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail)}}>
+                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail,saved,favorite,mychat,user.chat)}}>
                                 <Image
                                     source={{uri: user.profilepic}} 
                                     style={styles.profilepic}
@@ -273,7 +273,7 @@ const Userfollowers = ({navigation,route}) => {
                             </View>
                         ):(
                             userfollowing.map((user,index)=>(
-                                <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail)}}>
+                                <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail,saved,favorite,mychat,user.chat)}}>
                                     <Image
                                         source={{uri: user.profilepic}} 
                                         style={styles.profilepic}
@@ -316,7 +316,7 @@ const Userfollowers = ({navigation,route}) => {
                                              </View>
                                         ):(
                                             mutual.map((user, index) =>(
-                                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail)}}>
+                                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,myfollowing,myemail,saved,favorite,mychat,user.chat)}}>
                                                 <Image
                                                     source={{uri: user.profilepic}} 
                                                     style={styles.profilepic}

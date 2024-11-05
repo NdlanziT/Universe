@@ -13,10 +13,11 @@ const Discover = ({navigation,route}) => {
     const [loading,setLoading] = useState(true)
     const [users,setUsers] = useState([])
 
-    const {setFollowing,following,email} = route.params
+    const {setFollowing,following,email,saved,favorite,chat,profilepicture,username,setSaved,setFavorite} = route.params
+    const myusername = username
 
-    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail)=>{
-        navigation.navigate('Userprofile', {username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail});
+    const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,mychat,userchat)=>{
+        navigation.navigate('Userprofile', {username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture : profilepicture,myusername : myusername,mychat,userchat});
     }
 
     const removeValueFromArray = async (docId, field, valueToRemove) => {
@@ -214,7 +215,7 @@ const Discover = ({navigation,route}) => {
                             </Animated.View>
                         ):(
                             users.map((user, index) =>(
-                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,following,email)}}>
+                            <TouchableOpacity key={index} style={styles.group3} onPress={()=>{gotoprofile(user.username,user.profilepic,user.name,user.email,user.bio,user.post,user.followers,user.following,following,email,saved,favorite,chat,user.chat)}}>
                                 <Image
                                     source={{uri : user.profilepic}} 
                                     style={styles.profilepic}

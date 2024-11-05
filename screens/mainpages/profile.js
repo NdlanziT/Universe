@@ -51,6 +51,7 @@ const Profilemenu = ({navigation}) => {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const [userdata,setUserData] =useState([])
+  const [chat,setChat] = useState([])
 
   
   const [optionmodalVisible, setoptionModalVisible] = useState(false);
@@ -76,6 +77,12 @@ const Profilemenu = ({navigation}) => {
   const [content,setcontent] = useState("")
   const [media,setmedia] = useState("")
   const [backgroundcolor,setbackgroundcolor] = useState("")
+
+  const [likes,setLikes] = useState(0)
+  const [comments,setComments] = useState(0)
+  const [postdash,setpostdash] = useState(0)
+  const [followersdash,setfollowersdash] = useState(0)
+  const [followingdash,setfollowingdash] = useState(0)
 
   const timeDifference = useCallback((dateString) => {
     const inputDate = new Date(dateString);
@@ -663,6 +670,7 @@ const slideUpStylecomment = {
               setLoadinng(false)
               setSaved(currentUserData.saved);
               setFavorite(currentUserData.favourites);
+              setChat(currentUserData.chat);
           } else {
               console.error("No such user exists!"); // Handle the case where the document does not exist
               return null; // Return null or handle as needed
@@ -738,6 +746,11 @@ const slideUpStylecomment = {
 
     useEffect(() => {
       fetchUserData(user.email)
+      setLikes(Math.floor(Math.random() * 11));
+      setComment(Math.floor(Math.random() * 11));
+      setpostdash(Math.floor(Math.random() * 11));
+      setfollowersdash(Math.floor(Math.random() * 11));
+      setfollowingdash(Math.floor(Math.random() * 11));
     }, [post]);
 
     useEffect(() => {
@@ -759,16 +772,16 @@ const slideUpStylecomment = {
       navigation.navigate("Notification");
     };
     const followingpagehandle = ()=> {
-      navigation.navigate("Followingpage",{following,followers,username,email,ActivePage,setActivePage,setFollowers,setFollowing});
+      navigation.navigate("Followingpage",{profilepicture,username,following,followers,username,email,ActivePage,setActivePage,setFollowers,setFollowing,setSaved,setFavorite,saved,favorite,chat : chat});
     };
     const menuhandle = ()=> {
-      navigation.navigate("Menu",{following,phone,blocked,accountprivacy,theme,email,setFollowing,setTheme,setPhone});
+      navigation.navigate("Menu",{following,profilepicture,username,phone,blocked,accountprivacy,theme,email,saved,favorite,setFollowing,setTheme,setPhone,setSaved,setFavorite,chat : chat});
     };
     const dashboardhandle = ()=> {
       navigation.navigate("Dashboard");
     };
     const edithandle = ()=> {
-      navigation.navigate("Edit",{name,username,bio,profilepicture,links,email,setName,setUsername,setBio,setProfilepicture,setLinks});
+      navigation.navigate("Edit",{name,username,bio,profilepicture,links,email,phone,setPhone,setName,setUsername,setBio,setProfilepicture,setLinks});
     };
     console.log(profilepicture)
 

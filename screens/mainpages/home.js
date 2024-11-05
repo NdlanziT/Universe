@@ -49,6 +49,7 @@ const { width, height } = Dimensions.get('window');
 
 
 const Home = ({ navigation }) => {
+  const [refreshKey, setRefreshKey] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [optionmodalVisible, setoptionModalVisible] = useState(false);
   const [commentmodalVisible, setCommentModalVisible] = useState(false);
@@ -235,11 +236,10 @@ const handleaddfavourites = (postid, myemail, state) => {
     addValueToSaved(myemail, 'favourites', postid);
 
     setFavorite((prevSaved) => {
-      // Ensure that the post is only added if it's not already in the array
       if (!prevSaved.includes(postid)) {
-        return [...prevSaved, postid]; // Add the postid to the saved array
+        return [...prevSaved, postid]; 
       }
-      return prevSaved; // Return unchanged array if postid is already there
+      return prevSaved; 
      
     })
     closeoption()
@@ -571,51 +571,62 @@ async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
 }
 
 
-    async function fetchFollowingsPosts(currentUserId, myfollowing = []) {
-      try {
-        const postsCollectionRef = collection(db, "post");
-        const querySnapshot = await getDocs(postsCollectionRef);
-    
-        // Process posts asynchronously
-        const posts = await Promise.all(
-          querySnapshot.docs.map(async (doc) => {
-            const postData = doc.data();
-            postData.id = doc.id;
-    
-            // Fetch user information for the post owner
-            const user = await fetchUserById(postData.owner);
-    
-            // Fetch media URL
-            postData.media = await fetchPostPictureURL(postData.media);
-    
-            // Check if the post is liked by the current user
-            postData.liked = postData.likes && postData.likes.includes(currentUserId);
-    
-            if (user) {
-              postData.ownerInfo = {
-                name: user.name,
-                username: user.username,
-                bio: user.bio,
-                followers: user.followers,
-                following: user.following,
-                post: user.post,
-                email: user.email,
-                profilepic: user.profilepicture,
-              };
-              // Determine if the post belongs to the current user
-              postData.mine = user.email === currentUserId;
-              // Check if the current user follows this user
-              postData.followsuserstate = Array.isArray(myfollowing) && myfollowing.includes(user.email);
-            }
-    
-            return postData;
-          })
-        );
-        setPost(posts);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      }
-    }    
+async function fetchFollowingsPosts(currentUserId, myfollowing = []) { 
+  try {
+    const postsCollectionRef = collection(db, "post");
+    const querySnapshot = await getDocs(postsCollectionRef);
+
+    // Process posts asynchronously
+    const posts = await Promise.all(
+      querySnapshot.docs.map(async (doc) => {
+        const postData = doc.data();
+        postData.id = doc.id;
+
+        // Fetch user information for the post owner
+        const user = await fetchUserById(postData.owner);
+
+        // Fetch media URL
+        postData.media = await fetchPostPictureURL(postData.media);
+
+        // Check if the post is liked by the current user
+        postData.liked = postData.likes && postData.likes.includes(currentUserId);
+
+        if (user) {
+          postData.ownerInfo = {
+            name: user.name,
+            username: user.username,
+            bio: user.bio,
+            followers: user.followers,
+            following: user.following,
+            post: user.post,
+            email: user.email,
+            profilepic: user.profilepicture,
+            chat: user.chat
+          };
+          // Determine if the post belongs to the current user
+          postData.mine = user.email === currentUserId;
+          // Check if the current user follows this user
+          postData.followsuserstate = Array.isArray(myfollowing) && myfollowing.includes(user.email);
+          postData.chatarray = user.chat.find(item => chat.includes(item)) || '';
+          postData.chatstate = postData.chatarray !== '';
+        }
+        return postData;
+      })
+    );
+
+    // Sort posts by date from newest to oldest
+    const sortedPosts = posts.sort((a, b) => {
+      const dateA = new Date(a.createddat);
+      const dateB = new Date(b.createddat);
+      return dateB - dateA; // Newest to oldest
+    });
+
+    setPost(sortedPosts);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+  }
+}
+
     
     
   const fetchProfilePictureURL = async (fileName) => {
@@ -729,6 +740,7 @@ async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
               post: user.post,
               email: user.email,
               profilepic: user.profilepicture,
+              chat : user.chat,
             };
             if (user.email === currentUserId){
               commentData.mine = true;
@@ -747,11 +759,9 @@ async function fetchSecondFollowingPost(currentUserId, myfollowing = []) {
   };
 
 
-  const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite)=>{
-    navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername: username})
-}
+
 const gotosuggestedaccount = ()=>{
-  navigation.navigate("Discover",{setFollowing,following: following,email : currentUserId})
+  navigation.navigate("Discover",{setFollowing,following: following,email : currentUserId,chat : chat})
 }
   const timeDifference = useCallback((dateString) => {
     const inputDate = new Date(dateString);
@@ -872,15 +882,95 @@ const closecommentModal = () => {
 };
 
   const gotoMessage = () => {
-    navigation.navigate('Inbox',{myemail,chat,following,saved,favorite})
+    navigation.navigate('Inbox',{myemail,chat,following,saved,favorite,setSaved,setFavorite,myprofilepicture : myprofilepicture,myusername: myusername})
   };
   const gotosearch = () => {
     navigation.navigate('Search');
   };
+  const handleaccount = async (
+    user_profilepiture,
+    user_username,
+    user_name,
+    user_following,
+    user_post,
+    user_email,
+    user_followers,
+    messages_id,
+    chatid,
+    user_bio,
+    state
+  ) => {
+    if (state) {
+      try {
+        // Fetch message IDs from the database
+        const chatDocRef = doc(db, "chats", chatid); // Reference to the chat document
+        const chatDoc = await getDoc(chatDocRef); // Get the document
+  
+        if (chatDoc.exists()) {
+          const chatData = chatDoc.data();
+          const fetchedMessageIds = chatData.messageid || []; // Get messageid field
+  
+          // Navigate to the Message screen with fetched message IDs
+          navigation.navigate("Message", {
+            user_profilepiture,
+            user_username,
+            user_name,
+            user_following,
+            user_post,
+            user_email,
+            user_followers,
+            messages_id: fetchedMessageIds, // Use the fetched message IDs
+            following,
+            myemail,
+            saved,
+            favorite,
+            chatid,
+            existing: state,
+            setSaved,
+            setFavorite,
+            myprofilepicture,
+            myusername,
+            user_bio,
+          });
+        } else {
+          console.error("Chat document does not exist");
+        }
+      } catch (error) {
+        console.error("Error fetching chat data: ", error);
+      }
+    } else {
+      // Navigate without fetching data if state is false
+      navigation.navigate("Message", {
+        user_profilepiture,
+        user_username,
+        user_name,
+        user_following,
+        user_post,
+        user_email,
+        user_followers,
+        messages_id,
+        following,
+        myemail,
+        saved,
+        favorite,
+        chatid,
+        existing: state,
+        setSaved,
+        setFavorite,
+        myprofilepicture,
+        myusername,
+        user_bio,
+      });
+    }
+  };
+  
 
   const gotoAddPost = () => {
-    navigation.navigate('AddPost',{postype : "new"});
+    navigation.navigate('AddPost',{postype : "new",setRefreshKey});
   };
+  const gotoprofile = (username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,mychat,userchat)=>{
+    navigation.navigate("Userprofile",{username,profilepic,name,email,bio,post,followers,following,myfollowing,myemail,saved,favorite,setSaved,setFavorite,myprofilepicture,myusername: username,mychat,userchat})
+}
   useEffect(() => {
     fetchCurrentUserData();
   }, [currentUserId]);
@@ -912,6 +1002,7 @@ const closecommentModal = () => {
   // }, []); 
 
   useEffect(() => {
+    setLoading(true)
     const fetchData = async () => {
       try {
         await fetchFollowingsPosts(currentUserId, following);
@@ -939,7 +1030,7 @@ const closecommentModal = () => {
       // Run the second fetch function if there are any followings
       fetchSecondData();
     }
-  }, [currentUserId, following]);
+  }, [currentUserId, following,refreshKey]);
   
 
 
@@ -974,11 +1065,11 @@ const closecommentModal = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.topbar}>
-        <View style={styles.topappname}>
+        <TouchableOpacity style={styles.topappname} onPress={() => setRefreshKey(oldKey => oldKey + 1)}>
           <Text style={styles.appname}>UniVerse</Text>
-        </View>
+        </TouchableOpacity>
         <View style={styles.iconContainer}>
-          <TouchableOpacity style={styles.messageIconContainer} onPress={gotoAddPost}>
+          <TouchableOpacity style={styles.messageIconContainer} onPress={()=>{gotoAddPost()}}>
             <AddIcon size={30} color="white" style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.messageIconContainer}onPress={gotosearch}>
@@ -1024,7 +1115,7 @@ const closecommentModal = () => {
                       >
                         
                     {suggestedaccount.map((account,index) => (
-                        <TouchableOpacity key={index} style={styles.userDetails} onPress={()=>{gotoprofile(account.username,account.profilepic,account.name,account.email,account.bio,account.post,account.followers,account.following,following,currentUserId,saved,favorite)}}
+                        <TouchableOpacity key={index} style={styles.userDetails} onPress={()=>{gotoprofile(account.username,account.profilepic,account.name,account.email,account.bio,account.post,account.followers,account.following,following,currentUserId,saved,favorite,chat,account.chat)}}
                         activeOpacity={1}
                         >
                           <Image source={{uri : account.profilepic}} style={styles.userpic}/>
@@ -1046,7 +1137,7 @@ const closecommentModal = () => {
                         <View key={index} style={styles.postContainer}>
                             <View style={styles.postHeader}>
                                 <Image source={{uri :post.ownerInfo?.profilepic}} style={styles.avatar} />
-                                <TouchableOpacity style={styles.postInfo} onPress={()=>{gotoprofile(post.ownerInfo?.username,post.ownerInfo?.profilepic,post.ownerInfo?.name,post.ownerInfo?.email,post.ownerInfo?.bio,post.ownerInfo?.post,post.ownerInfo?.followers,post.ownerInfo?.following,following,currentUserId,saved,favorite)}}>
+                                <TouchableOpacity style={styles.postInfo} onPress={()=>{gotoprofile(post.ownerInfo?.username,post.ownerInfo?.profilepic,post.ownerInfo?.name,post.ownerInfo?.email,post.ownerInfo?.bio,post.ownerInfo?.post,post.ownerInfo?.followers,post.ownerInfo?.following,following,currentUserId,saved,favorite,chat,post.ownerInfo.chat)}}>
                                     <Text style={styles.username}>{post.ownerInfo?.username} </Text>
                                     <Text style={styles.time}>{timeDifference(post.createdat)} ago</Text>
                                 </TouchableOpacity>
@@ -1085,11 +1176,8 @@ const closecommentModal = () => {
                                 </View>
                             </View>
                           <View style={styles.likedcontaineroption}>
-                            <TouchableOpacity>
-                            <Text style={styles.username}>Users who liked</Text>
-                            </TouchableOpacity>
                             {!post.mine && (
-                            <TouchableOpacity style={styles.buttonsendmessagebtn}>
+                            <TouchableOpacity style={styles.buttonsendmessagebtn} onPress={()=>{handleaccount(post.ownerInfo?.profilepic,post.ownerInfo?.username,post.ownerInfo?.name,post.ownerInfo?.following,post.ownerInfo?.post,post.ownerInfo?.email,post.ownerInfo?.followers,messages_id = [],post.chatarray,post.ownerInfo?.bio,post.chatstate)}}>
                                 <Text style={styles.username}>Send message</Text>
                             </TouchableOpacity>
                             )}
@@ -1183,7 +1271,7 @@ const closecommentModal = () => {
                                                         } else {
                                                           replytouser(comment.ownerInfo?.username,comment.ownerInfo?.email); // Set reply to the clicked username
                                                         }}}>
-                                                        <TouchableOpacity onPress={()=>{gotoprofile(comment.ownerInfo?.username,comment.ownerInfo?.profilepic,comment.ownerInfo?.name,comment.ownerInfo?.email,comment.ownerInfo?.bio,comment.ownerInfo?.post,comment.ownerInfo?.followers,comment.ownerInfo?.following,following,currentUserId,saved,favorite),closecommentModal()}}>
+                                                        <TouchableOpacity onPress={()=>{gotoprofile(comment.ownerInfo?.username,comment.ownerInfo?.profilepic,comment.ownerInfo?.name,comment.ownerInfo?.email,comment.ownerInfo?.bio,comment.ownerInfo?.post,comment.ownerInfo?.followers,comment.ownerInfo?.following,following,currentUserId,saved,favorite,chat,comment.ownerInfo.chat),closecommentModal()}}>
                                                         <Image
                                                           source={{uri : comment.ownerInfo?.profilepic}}
                                                           style={styles.avatar}

@@ -49,17 +49,6 @@ const Notications = ({ navigation }) => {
                     ))}
                 </ScrollView>
             )}
-
-            {/* Sample Comments Section */}
-            <View style={styles.commentsContainer}>
-                <Text style={styles.commentsTitle}>Sample Comments:</Text>
-                {sampleComments.map(comment => (
-                    <View key={comment.id} style={styles.comment}>
-                        <Text style={styles.commentMessage}>{comment.message}</Text>
-                        <Text style={styles.commentTimestamp}>{comment.timestamp}</Text>
-                    </View>
-                ))}
-            </View>
         </View>
     );
 };

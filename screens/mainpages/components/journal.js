@@ -1,4 +1,3 @@
-// Journal.js
 import React, { useState } from 'react';
 import {
   View,
@@ -18,10 +17,13 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "../../../firebase";
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { BackButton } from '../../icons/back';
+import { CameraIcon } from '../../icons/camera';
+import { CloseButton } from '../../icons/close';
+import { AddIcon } from '../../icons/add_circle';
+import { Bulletin } from '../../icons/bulletins';
 
-const Journal = () => {
-  const navigation = useNavigation();
+const Journal = ({navigation}) => {
   const [journalText, setJournalText] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedMood, setSelectedMood] = useState(null);
@@ -98,14 +100,14 @@ const Journal = () => {
         images: imageUrls,
         mood: selectedMood,
         createdAt: serverTimestamp(),
-        favorite: false,  // Add favorite field
+        favorite: false,
       });
 
       setJournalText('');
       setSelectedImages([]);
       setSelectedMood(null);
       Alert.alert("Success", "Your journal entry has been saved.");
-      navigation.navigate('Library');  // Navigate back to Library after saving
+      navigation.navigate('Library');
     } catch (error) {
       console.error('Error saving journal:', error);
       Alert.alert("Error", "An error occurred while saving your journal entry.");
@@ -132,8 +134,11 @@ const Journal = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+      <TouchableOpacity style={styles.topbar}  onPress={() => navigation.goBack()}>
+      <BackButton color='white' size={30}/>
+      <Text style={styles.header}>Journal</Text>
+      </TouchableOpacity>
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <Text style={styles.header}>Journal</Text>
 
         <Text style={styles.sectionTitle}>Select Your Mood</Text>
         <ScrollView horizontal contentContainerStyle={styles.moodContainer} showsHorizontalScrollIndicator={false}>
@@ -166,12 +171,12 @@ const Journal = () => {
             <ScrollView horizontal>
               {selectedImages.map((uri, index) => (
                 <View key={index} style={styles.imagePreview}>
-                  <Image source={{ uri }} style={styles.previewImage} />
+                  <Image source={{uri : uri }} style={styles.previewImage} />
                   <TouchableOpacity
                     style={styles.removeImageButton}
                     onPress={() => removeImage(uri)}
                   >
-                    <Icon name="close-circle" size={24} color="#fff" />
+                    <CloseButton color="#fff" />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -182,10 +187,10 @@ const Journal = () => {
 
       <View style={styles.toolbar}>
         <TouchableOpacity onPress={pickImages}>
-          <Icon name="camera" size={24} color="#fff" />
+          <CameraIcon size={24} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={toggleBulletList}>
-          <Icon name="format-list-bulleted" size={24} color="#fff" />
+          <Bulletin size={24} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.saveButton}
@@ -195,7 +200,7 @@ const Journal = () => {
           {isLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Icon name="content-save" size={24} color="#fff" />
+            <AddIcon size={24} color="#fff" />
           )}
         </TouchableOpacity>
       </View>
@@ -204,9 +209,10 @@ const Journal = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121212' },
+  container: { flex: 1, backgroundColor: 'black' },
+  topbar:{flexDirection:"row",alignItems:"center",marginTop: 25,marginLeft:10,marginBottom:25},
   scrollView: { padding: 16 },
-  header: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 20, textAlign: 'center' },
+  header: { fontSize: 28, fontWeight: 'bold', color: '#fff', textAlign: 'center',marginLeft:10 },
   sectionTitle: { fontSize: 18, color: '#ccc', marginBottom: 10 },
   moodContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
   moodButton: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#333', padding: 15, borderRadius: 10, marginRight: 10, width: 80 },
@@ -215,10 +221,10 @@ const styles = StyleSheet.create({
   journalInput: { minHeight: 120, fontSize: 16, color: '#fff', textAlignVertical: 'top', backgroundColor: '#1e1e1e', borderRadius: 10, padding: 10, marginBottom: 20 },
   imagePreviewContainer: { marginBottom: 20 },
   imagePreview: { marginRight: 10, position: 'relative' },
-  previewImage: { width: 100, height: 100, borderRadius: 10 },
+  previewImage: { width: 100, height: 100, borderRadius: 10, backgroundColor: '#333' },
   removeImageButton: { position: 'absolute', top: -10, right: -10, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 12 },
-  toolbar: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 16, backgroundColor: '#1e1e1e', borderTopWidth: 1, borderTopColor: '#333' },
-  saveButton: { backgroundColor: '#4CAF50', padding: 10, borderRadius: 20 },
+  toolbar: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 16, backgroundColor: '#1e1e1e', borderTopWidth: 1, borderColor: '#333' },
+  saveButton: { backgroundColor: '#4caf50', borderRadius: 50, padding: 10 },
 });
 
 export default Journal;
