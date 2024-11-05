@@ -90,8 +90,8 @@ const Mentalhealth = () => {
       <View style={styles.expiredCard}>
         <Text style={styles.expiredTitle}>Plan Expired</Text>
         <Text style={styles.expiredText}>Get back chat access and session credits</Text>
-        <TouchableOpacity>
-          <Text style={styles.buyMoreText}>Buy More</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
+          <Text style={styles.buyMoreText}>Buy More💸</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   expiredCard: { backgroundColor: '#059669', borderRadius: 16, padding: 16 },
   expiredTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
   expiredText: { color: '#d1fae5', marginVertical: 8 },
-  buyMoreText: { color: '#fff', fontWeight: 'bold' },
+  buyMoreText: { color: '#fff', fontWeight: 'bold', borderWidth: 2, borderColor: 'black', borderRadius: 8, padding: 10, marginTop: 10, alignSelf: '' }, 
 });
 
 export default Mentalhealth;
