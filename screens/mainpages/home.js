@@ -1012,12 +1012,10 @@ const closecommentModal = () => {
       ) : (
         <ScrollView style={styles.ScrollViewcontainer}>
           <View style={styles.usercontainer}>
-            {/* Ad Section */}
             <TouchableOpacity style={styles.adContainer} onPress={() => navigation.navigate('Subscription')}>
               <Image source={require('./ad.png')} style={styles.adImage} />
             </TouchableOpacity>
             
-            {/* See All Section */}
             <TouchableOpacity style={styles.seeallcontainer} onPress={gotosuggestedaccount}>
               <Text style={styles.seealltext}>See All</Text>
               <ForwardIcon color='white' size={24} />
